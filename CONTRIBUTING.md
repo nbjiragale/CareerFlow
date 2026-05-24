@@ -1,3 +1,34 @@
+# Contributing to CareerFlow
+
+Thank you for your interest in contributing to CareerFlow AI! This document outlines the process and guidelines for contributing.
+
+> CareerFlow is a fork of [Gsync/jobsync](https://github.com/Gsync/jobsync) (MIT). Most of the contributing workflow below was inherited from JobSync and remains accurate. The CareerFlow-specific addition is the **Upstream merge workflow** section directly below.
+
+---
+
+## Upstream merge workflow (CareerFlow-specific)
+
+CareerFlow tracks JobSync as an `upstream` remote so we can pull in bug fixes and improvements from the base project. To keep merges feasible:
+
+1. **Keep CareerFlow-specific files clearly named.** New CareerFlow code lives in directories or files whose names make their origin obvious (e.g. `src/app/api/gmail/*`, `src/app/api/evaluate/*`, `src/lib/prompts/career-ops/*`, `docs/IMPLEMENTATION_PLAN.md`).
+2. **Avoid edits to JobSync's existing files** unless strictly necessary. When such an edit is required, leave a `// CAREERFLOW:` marker comment so the change is greppable.
+3. **Monthly upstream sync chore.** On the first working day of each month:
+   ```bash
+   git fetch upstream
+   git checkout main
+   git merge upstream/main      # resolve conflicts; CareerFlow-only files should never conflict
+   git push origin main         # via PR if branch protection requires it
+   ```
+4. **Pin upstream SHAs for prompts.** career-ops prompt files store the source SHA they were extracted from in a `SOURCE_SHA` constant. A quarterly diff review is required to pull in upstream prompt improvements.
+
+---
+
+## Original JobSync contributing guidelines
+
+The remainder of this file is the unmodified JobSync contributing guide. Where it says "JobSync", read "CareerFlow"; everywhere else it applies as written.
+
+---
+
 # Contributing to JobSync
 
 Thank you for your interest in contributing to JobSync! This document outlines the process and guidelines for contributing to this project. Please read it carefully before submitting any contributions.

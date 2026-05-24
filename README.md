@@ -1,6 +1,29 @@
-# JobSync - Job Search Assistant
+# CareerFlow AI
 
-## <a href="https://demo.jobsync.ca">Live Demo</a>
+> AI-powered job application lifecycle manager. Self-hosted, local-first, BYO AI key.
+
+CareerFlow AI is an open-source, self-hostable platform that unifies Gmail tracking, application management, resume tailoring, ATS scoring, and recruiter communication into a single workflow-driven dashboard. Zero infrastructure cost — the only configuration required is your own AI provider key.
+
+**Status:** Phase 0 — fork baseline. Phases 1–4 in active development. See [`docs/IMPLEMENTATION_PLAN.md`](./docs/IMPLEMENTATION_PLAN.md) for the roadmap and [`docs/PRD.md`](./docs/PRD.md) for the product spec.
+
+## Built on
+
+CareerFlow is an orchestration layer over excellent existing open-source projects. We integrate rather than reconstruct:
+
+- **[Gsync/jobsync](https://github.com/Gsync/jobsync)** (MIT) — the base application: Next.js + Prisma + SQLite dashboard, AI key management, structured resume builder, AI resume↔JD matching, and the `node-cron` scheduler. CareerFlow extends this with Gmail integration, JD evaluation, and recruiter reply drafting.
+- **[Tomiwajin/CareerSync](https://github.com/Tomiwajin/CareerSync)** (MIT) — Gmail OAuth flow and regex-based email classification pipeline ported in as Next.js API routes.
+- **[career-ops](https://github.com/career-ops/career-ops)** — source of evaluation, tailoring, and outreach prompts. Re-implemented as web-facing API routes that call your configured AI provider.
+- **[srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)** (Apache 2.0) — deferred; planned as an optional Python sidecar for offline semantic scoring in a later phase.
+
+Full attribution and license info in [`NOTICE`](./NOTICE) (TBA).
+
+---
+
+## Original JobSync README below
+
+The sections below are the unmodified JobSync README. Until CareerFlow lands its own feature documentation in Phase 4, treat this as the source of truth for current functionality.
+
+## <a href="https://demo.jobsync.ca">Live Demo (JobSync)</a>
 
 JobSync is a web app companion for managing your job search journey. This free and open-source project is designed to help job seekers efficiently track and organize their job applications. Say goodbye to the chaos of scattered information and hello to a streamlined, intuitive, and powerful job search experience running locally on your system.
 
@@ -38,17 +61,21 @@ Job searching can be overwhelming, with numerous applications to track and deadl
 JobSync Assistant is completely free to use and open source. It provides a powerful job search management tool at no cost and ensures that everyone has access to the resources they need. Additionally, JobSeeker Assistant is designed to be self-hosted, giving you full control over your data. By using Docker, you can easily set up and run JobSync Assistant on your own server, ensuring a secure and personalized experience.
 
 
-## Quick Start
+## Quick Start (Docker)
 
 Make sure [Docker](https://www.docker.com) is installed and running, then:
 
 ```sh
-git clone https://github.com/Gsync/jobsync.git
-cd jobsync
+git clone https://github.com/nbjiragale/CareerFlow.git
+cd CareerFlow
 docker compose up
 ```
 
 Open [http://localhost:3737](http://localhost:3737) and create your account. That's it!
+
+## Local Development (no Docker)
+
+If you're contributing or hacking on the code, run the app directly with `npm run dev`. See [`docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) for the full guide.
 
 API keys for AI providers can be configured in **Settings** after signing in.
 
