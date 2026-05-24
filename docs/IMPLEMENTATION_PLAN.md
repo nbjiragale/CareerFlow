@@ -54,22 +54,23 @@ All compatible.
 
 ## 2. Important correction about CareerSync
 
-I had to recalibrate after reading the actual repo:
+**Errata note (2026-05-24):** the original v2 of this plan claimed CareerSync was "pure Next.js + `googleapis` + regex pattern matching, no HuggingFace dependency." That was wrong — I had only read `lib/email-utils.ts` (which is regex, but is used for *exclusion filtering* of emails like `*@indeed.com`, not for classification). The actual classifier is at [`app/api/process-emails/route.ts:53-82`](https://github.com/Tomiwajin/CareerSync/blob/main/app/api/process-emails/route.ts) and calls a **HuggingFace Space via the `@gradio/client` library** — env var `HUGGINGFACE_SPACE_URL` (format `your_hf_username/your_space_name` per CareerSync's `.env.example:9-10`). So CareerSync IS dependent on a remote ML service; we just don't run a Python sidecar locally.
 
-The PRD describes CareerSync as using "**Hugging Face hosted SetFit classifier and T5-small extractor**." The actual `Tomiwajin/CareerSync` codebase is **pure Next.js + `googleapis` + regex pattern matching**. There is no ML, no Python, no HuggingFace dependency in the code that ships. Quote from CareerSync's README §"Pattern Recognition":
+**Effect on the plan:** CareerFlow's classifier strategy is **Option A — use a HuggingFace Space via Gradio** (locked decision, 2026-05-24). We either point at CareerSync's existing public Space or deploy our own from CareerSync's HF repo. The classifier interface is a single `classifyEmail(text): Promise<{ label, confidence, company?, role? }>` call; the Space handles classification + extraction in one combined endpoint (`/process_batch`).
 
-> *The system uses sophisticated regex patterns to identify: Job Applications, Interview Invitations, Rejections, Company Names, Job Titles…*
-
-**Why this matters:** the original PRD §9.1 implied we'd need a Python ML pipeline. Reality is the CareerSync classifier is ~hundreds of lines of TypeScript regex/heuristics. It ports directly into the JobSync codebase as Next.js API routes — **no sidecar required**.
+**Other classifier options we did NOT pick** (kept here for traceability):
+- **Option B** — Use the user's configured LLM via Vercel AI SDK `generateObject`. Fits BYO-key story, free with Ollama, ~$0.001/email with paid providers. Slower (1-3s per email).
+- **Option C** — Bundle a SetFit-style Python classifier as a sidecar. Same complexity tax we deferred Resume-Matcher to avoid.
+- **Option D** — Tiny local model via Ollama only (Llama 3.2 1B / Phi-3 Mini). Free, offline, but lower accuracy.
 
 CareerSync's relevant files we'll port:
 - `app/api/auth/gmail/route.ts` — OAuth init
 - `app/api/auth/callback/route.ts` — OAuth callback
 - `app/api/auth/status/route.ts` — connection status
 - `app/api/auth/logout/route.ts` — disconnect
-- `app/api/process-emails/route.ts` — fetch, parse, classify, return structured rows
+- `app/api/process-emails/route.ts` — fetch, parse, classify, return structured rows (calls the HuggingFace Space)
 
-We'll discard CareerSync's Supabase + Zustand state code and rewire data persistence through Prisma into JobSync's existing `Job` / new `EmailThread` tables.
+We'll discard CareerSync's Supabase + Zustand state code and rewire data persistence through Prisma into JobSync's existing `Job` / new `EmailThread` tables. The cookie-based token storage will be replaced with our encrypted `OAuthToken` model (PRD hard-review gate).
 
 ---
 
@@ -328,7 +329,7 @@ Every career-ops mode becomes one file under `src/lib/prompts/career-ops/` + one
 | R1 | Gmail OAuth Testing-mode 100-user limit | Med | Caps adoption | Document self-hosting path with user-supplied OAuth credentials — every self-hoster makes their own Cloud Project. Removes the 100-user cap. |
 | R2 | JobSync upstream drift breaks merges | Med | Maintenance pain | Keep added code in clearly-named files (`*.careerflow.ts`); never modify JobSync's existing files without a comment marker. Monthly upstream merge chore. |
 | R3 | career-ops prompt drift | Med | Eval quality drift | Pin upstream SHA per prompt file; quarterly diff review. |
-| R4 | Regex classifier false positives | High | Wrong job statuses | Confidence threshold + Needs Review tab + user-corrections table; PRD §18 metric: 90% accuracy on corrected sample. |
+| R4 | HuggingFace Space classifier false positives or downtime | High | Wrong job statuses or feature outage | Confidence threshold + Needs Review tab + user-corrections table; PRD §18 metric: 90% accuracy on corrected sample. Document fallback to Option B (BYO LLM classifier) if the Space becomes unreliable. |
 | R5 | LAN-exposed container with default password | Med | Trust risk | README + Settings → Security warning when not running on `127.0.0.1`. |
 | R6 | LLM cost surprises for users | Med | Churn | `AiAuditLog` powers a Settings → Usage page with per-day spend + soft cap warning. |
 | R7 | CareerSync's Supabase code in the port creates tight coupling | Low | Slows port | Strip Supabase before integrating; only port the OAuth + parser + classifier logic. |
