@@ -1,10 +1,15 @@
 "use client";
 
-import { Bot, Key, Palette } from "lucide-react";
+// CAREERFLOW: Phase 1 — added "integrations" section for Gmail.
+import { Bot, Key, Palette, Plug } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 
-export type SettingsSection = "ai-provider" | "api-keys" | "appearance";
+export type SettingsSection =
+  | "ai-provider"
+  | "api-keys"
+  | "integrations"
+  | "appearance";
 
 const SETTINGS_SECTIONS: {
   id: SettingsSection;
@@ -13,6 +18,8 @@ const SETTINGS_SECTIONS: {
 }[] = [
   { id: "ai-provider", label: "AI Provider", icon: Bot },
   { id: "api-keys", label: "API Keys", icon: Key },
+  // CAREERFLOW: Phase 1 — Gmail integration lives here.
+  { id: "integrations", label: "Integrations", icon: Plug },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 
