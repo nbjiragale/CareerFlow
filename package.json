@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "npx playwright test",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:reset": "rm -f prisma/dev.db prisma/dev.db-journal && npx prisma migrate dev"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^2.0.4",

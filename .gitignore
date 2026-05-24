@@ -46,7 +46,8 @@ dev.db-journal
 /playwright/.cache/
 data/files/resumes
 CLAUDE.md
-/docs
+# CAREERFLOW: JobSync ignored /docs (Claude-generated planning artefacts);
+# CareerFlow tracks docs/ as part of the repo (PRD, IMPLEMENTATION_PLAN, DEVELOPMENT, etc.)
 .github/*
 !.github/workflows
 .claude
