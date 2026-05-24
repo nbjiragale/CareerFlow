@@ -53,7 +53,7 @@ If the local SQLite drifts or you want a clean slate:
 npm run db:reset
 ```
 
-This deletes `prisma/dev.db` and re-runs migrations. Your application data is wiped — there's no undo. CareerFlow's encrypted API keys, Gmail tokens, and email threads all live in this file.
+Runs `prisma migrate reset --force --skip-seed`, which drops the local SQLite, re-creates the schema, and re-applies every migration. Your application data is wiped — there's no undo. CareerFlow's encrypted API keys, Gmail tokens, and email threads all live in this file.
 
 ### Prisma after schema edits
 
