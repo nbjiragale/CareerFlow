@@ -8,6 +8,8 @@ import {
   Wrench,
   Zap,
   BookOpen,
+  // CAREERFLOW: Phase 1 — Gmail tab icon.
+  Mail,
 } from "lucide-react";
 
 export const APP_CONSTANTS = {
@@ -21,7 +23,10 @@ export const APP_CONSTANTS = {
 
 export const SCHEDULER_CONSTANTS = {
   ENABLED: true,
-  CRON_EXPRESSION: "0 * * * *", // Every hour at minute 0
+  // CAREERFLOW: bumped from "0 * * * *" to "*/15 * * * *" for Phase 1
+  // Gmail sync cadence. Automations still gate on nextRunAt, so a more
+  // frequent tick is harmless for the JobSync side.
+  CRON_EXPRESSION: "*/15 * * * *",
 } as const;
 
 export const JOB_SOURCES = [
@@ -56,6 +61,12 @@ export const SIDEBAR_LINKS = [
     icon: BriefcaseBusiness,
     route: "/dashboard/myjobs",
     label: "My Jobs",
+  },
+  // CAREERFLOW: Phase 1 — Gmail integration tab.
+  {
+    icon: Mail,
+    route: "/dashboard/gmail",
+    label: "Gmail",
   },
   {
     icon: Zap,

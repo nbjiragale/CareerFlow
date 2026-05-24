@@ -2,6 +2,8 @@ import cron, { ScheduledTask } from "node-cron";
 import { SCHEDULER_CONSTANTS } from "@/lib/constants";
 import db from "@/lib/db";
 import { runAutomation } from "@/lib/scraper";
+// CAREERFLOW: Phase 1 — Gmail sync scheduled alongside JobSync's automations.
+import { runDueGmailSyncs } from "@/lib/gmail/scheduler";
 
 let scheduledTask: ScheduledTask | null = null;
 
@@ -90,9 +92,17 @@ export function startScheduler() {
 
   console.log(`[Scheduler] Starting with schedule: ${cronExpression}`);
 
-  scheduledTask = cron.schedule(cronExpression, runDueAutomations, {
-    timezone: process.env.TZ || "UTC",
-  });
+  scheduledTask = cron.schedule(
+    cronExpression,
+    async () => {
+      await runDueAutomations();
+      // CAREERFLOW: Phase 1 — also fan out Gmail syncs each tick.
+      await runDueGmailSyncs();
+    },
+    {
+      timezone: process.env.TZ || "UTC",
+    },
+  );
 
   console.log("[Scheduler] Started successfully");
 }
