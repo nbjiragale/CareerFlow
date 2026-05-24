@@ -13,27 +13,31 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(uuid())
-  name         String
-  email        String         @unique
-  password     String
-  createdAt    DateTime       @default(now())
-  jobsApplied  Job[]
-  JobTitle     JobTitle[]
-  Location     Location[]
-  Company      Company[]
-  JobSource    JobSource[]
-  Contact      Contact[]
-  Profile      Profile[]
-  Activity     Activity[]
-  ActivityType ActivityType[]
-  Task         Task[]
-  Automation   Automation[]
-  Settings     UserSettings?
-  ApiKey       ApiKey[]
-  Note         Note[]
-  Tag          Tag[]
-  Question     Question[]
+  id                            String                          @id @default(uuid())
+  name                          String
+  email                         String                          @unique
+  password                      String
+  createdAt                     DateTime                        @default(now())
+  jobsApplied                   Job[]
+  JobTitle                      JobTitle[]
+  Location                      Location[]
+  Company                       Company[]
+  JobSource                     JobSource[]
+  Contact                       Contact[]
+  Profile                       Profile[]
+  Activity                      Activity[]
+  ActivityType                  ActivityType[]
+  Task                          Task[]
+  Automation                    Automation[]
+  Settings                      UserSettings?
+  ApiKey                        ApiKey[]
+  Note                          Note[]
+  Tag                           Tag[]
+  Question                      Question[]
+  // CAREERFLOW: back-relations for Gmail integration (Phase 1).
+  OAuthToken                    OAuthToken[]
+  EmailThread                   EmailThread[]
+  EmailClassificationCorrection EmailClassificationCorrection[]
 }
 
 model ApiKey {
@@ -273,34 +277,34 @@ model Interview {
 }
 
 model Job {
-  id          String      @id @default(uuid())
-  userId      String
-  User        User        @relation(fields: [userId], references: [id])
-  jobUrl      String?
-  description String
-  jobType     String
-  createdAt   DateTime
-  applied     Boolean     @default(false)
-  appliedDate DateTime?
-  dueDate     DateTime?
-  statusId    String
-  Status      JobStatus   @relation(fields: [statusId], references: [id])
-  JobTitle    JobTitle    @relation(fields: [jobTitleId], references: [id])
-  jobTitleId  String
-  Company     Company     @relation(fields: [companyId], references: [id])
-  companyId   String
-  JobSource   JobSource?  @relation(fields: [jobSourceId], references: [id])
-  jobSourceId String?
-  salaryRange String?
-  Location    Location?   @relation(fields: [locationId], references: [id])
-  locationId  String?
-  Interview   Interview[]
+  id            String       @id @default(uuid())
+  userId        String
+  User          User         @relation(fields: [userId], references: [id])
+  jobUrl        String?
+  description   String
+  jobType       String
+  createdAt     DateTime
+  applied       Boolean      @default(false)
+  appliedDate   DateTime?
+  dueDate       DateTime?
+  statusId      String
+  Status        JobStatus    @relation(fields: [statusId], references: [id])
+  JobTitle      JobTitle     @relation(fields: [jobTitleId], references: [id])
+  jobTitleId    String
+  Company       Company      @relation(fields: [companyId], references: [id])
+  companyId     String
+  JobSource     JobSource?   @relation(fields: [jobSourceId], references: [id])
+  jobSourceId   String?
+  salaryRange   String?
+  Location      Location?    @relation(fields: [locationId], references: [id])
+  locationId    String?
+  Interview     Interview[]
   Resume        Resume?      @relation(fields: [resumeId], references: [id])
   resumeId      String?
   CoverLetter   CoverLetter? @relation(fields: [coverLetterId], references: [id])
   coverLetterId String?
   Notes         Note[]
-  tags        Tag[]
+  tags          Tag[]
 
   // Automation discovery fields
   automationId    String?
@@ -309,6 +313,9 @@ model Job {
   matchData       String?
   discoveryStatus String?
   discoveredAt    DateTime?
+
+  // CAREERFLOW: back-relation to Gmail email threads linked to this Job (Phase 1).
+  EmailThread EmailThread[]
 
   @@index([userId, automationId])
   @@index([userId, discoveryStatus])
@@ -441,11 +448,11 @@ model Note {
 }
 
 model Tag {
-  id        String @id @default(uuid())
+  id        String     @id @default(uuid())
   label     String
   value     String
   createdBy String
-  user      User   @relation(fields: [createdBy], references: [id])
+  user      User       @relation(fields: [createdBy], references: [id])
   jobs      Job[]
   questions Question[]
 
@@ -463,4 +470,93 @@ model Question {
   updatedAt DateTime @updatedAt
 
   @@index([createdBy])
+}
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: Gmail integration models (Phase 1).
+//
+// Three new models, all FK'd to User and isolated from JobSync's existing
+// tables. Encryption pattern mirrors ApiKey: ciphertext column + IV column,
+// AES-256-GCM via src/lib/encryption.ts.
+// ---------------------------------------------------------------------------
+
+// CAREERFLOW: OAuth refresh + access tokens for the Gmail integration. One row
+// per (user, provider) pair; `provider="google"` for Gmail today. Encrypted
+// refresh token is required; encrypted access token is cached opportunistically
+// to avoid an extra token-exchange call on every poll cycle, and re-derived
+// when accessTokenExpiresAt has passed.
+model OAuthToken {
+  id                    String    @id @default(uuid())
+  userId                String
+  User                  User      @relation(fields: [userId], references: [id])
+  provider              String // "google" today; future: "microsoft" for Outlook
+  encryptedRefreshToken String // AES-256-GCM ciphertext (base64) via src/lib/encryption.ts
+  refreshTokenIv        String // salt.iv (base64.base64) — same format as ApiKey.iv
+  encryptedAccessToken  String? // optional cached access token
+  accessTokenIv         String?
+  accessTokenExpiresAt  DateTime?
+  scope                 String // e.g. "https://www.googleapis.com/auth/gmail.readonly"
+  email                 String // the Google account address; shown in Settings → Integrations
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  lastUsedAt            DateTime?
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+// CAREERFLOW: cached classification result for a Gmail thread. One row per
+// (user, gmailThreadId). `label` / `confidence` come from the HuggingFace
+// Space classifier; `needsReview` is true when confidence < the user's
+// configured threshold (default 0.7). Optional FK to Job is populated when
+// the classifier extracts company + role and we auto-create or auto-link
+// a Job record.
+model EmailThread {
+  id             String  @id @default(uuid())
+  userId         String
+  User           User    @relation(fields: [userId], references: [id])
+  gmailThreadId  String
+  gmailMessageId String // most recent message.id in the thread; for direct linking
+  jobId          String?
+  Job            Job?    @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  // Classification result from the HuggingFace Space classifier.
+  label       String // "Applied" | "Interview" | "Rejected" | "Offer" | "NextPhase" | "NotJobRelated"
+  confidence  Float
+  needsReview Boolean @default(false)
+
+  // Extracted fields (the Space returns these alongside label).
+  extractedCompany String?
+  extractedRole    String?
+
+  // Email metadata; body intentionally NOT stored by default (PRD §13 privacy).
+  subject     String
+  snippet     String
+  fromAddress String
+  receivedAt  DateTime
+  processedAt DateTime @default(now())
+
+  Correction EmailClassificationCorrection?
+
+  @@unique([userId, gmailThreadId])
+  @@index([userId, receivedAt])
+  @@index([userId, needsReview])
+  @@index([jobId])
+}
+
+// CAREERFLOW: captures user corrections when the classifier is wrong. Feeds
+// PRD §18 accuracy metric and (in a later phase) a fine-tuning dataset.
+// Cascades on EmailThread delete so a thread purge doesn't leave orphans.
+model EmailClassificationCorrection {
+  id                 String      @id @default(uuid())
+  userId             String
+  User               User        @relation(fields: [userId], references: [id])
+  emailThreadId      String      @unique
+  EmailThread        EmailThread @relation(fields: [emailThreadId], references: [id], onDelete: Cascade)
+  originalLabel      String
+  correctedLabel     String
+  originalConfidence Float?
+  correctedAt        DateTime    @default(now())
+
+  @@index([userId, correctedAt])
 }
