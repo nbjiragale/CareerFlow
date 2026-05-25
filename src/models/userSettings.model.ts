@@ -5,8 +5,15 @@ export interface AiSettings {
   model: string | undefined;
 }
 
+// CAREERFLOW: redesign (PR E) — UI density toggle. Lives in the same
+// `display` JSON blob; the boot script in <head> reads `localStorage` and
+// sets `data-density` on <html> before paint, then the settings page
+// persists changes here and mirrors them back to localStorage.
+export type DisplayDensity = "comfortable" | "compact";
+
 export interface DisplaySettings {
   theme: "light" | "dark" | "system";
+  density: DisplayDensity;
 }
 
 // CAREERFLOW: Phase 3 — notification preferences. Stored inside the existing
@@ -37,6 +44,7 @@ export const defaultUserSettings: UserSettingsData = {
   },
   display: {
     theme: "system",
+    density: "comfortable",
   },
   notifications: {
     browserEnabled: true,
