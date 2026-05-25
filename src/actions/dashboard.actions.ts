@@ -422,3 +422,82 @@ export const getActivityCalendarData = async (): Promise<any | undefined> => {
     throw new Error(msg);
   }
 };
+
+// CAREERFLOW: Phase 3 (PR #9) — analytics tiles.
+
+export interface FunnelStage {
+  stage: string;
+  label: string;
+  count: number;
+}
+
+const FUNNEL_STAGES: { stage: string; label: string }[] = [
+  { stage: "applied", label: "Applied" },
+  { stage: "interview", label: "Interview" },
+  { stage: "offer", label: "Offer" },
+];
+
+// Snapshot funnel: how many of the user's jobs are currently in each stage,
+// keyed off the authoritative Job.Status (not email classifications).
+export const getFunnelForUser = async (
+  userId: string,
+): Promise<FunnelStage[]> => {
+  const counts = await prisma.$transaction(
+    FUNNEL_STAGES.map((s) =>
+      prisma.job.count({ where: { userId, Status: { value: s.stage } } }),
+    ),
+  );
+  return FUNNEL_STAGES.map((s, i) => ({ ...s, count: counts[i] ?? 0 }));
+};
+
+export interface ResponseRateWindow {
+  windowDays: number;
+  appliedCount: number;
+  respondedCount: number;
+  rate: number; // 0–100, percent of applied threads that got a response
+}
+
+const POSITIVE_LABELS = new Set(["Interview", "Offer", "NextPhase"]);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Recruiter responsiveness: of the user's "Applied"-classified email threads,
+// what share saw a positive reply (Interview/Offer/NextPhase) for the SAME job
+// within N days. Threads not linked to a job are excluded.
+export const getResponseRateForUser = async (
+  userId: string,
+  windows: number[] = [30, 60, 90],
+): Promise<ResponseRateWindow[]> => {
+  const threads = await prisma.emailThread.findMany({
+    where: { userId, jobId: { not: null } },
+    select: { jobId: true, label: true, receivedAt: true },
+  });
+
+  const byJob = new Map<string, { applied: number[]; positive: number[] }>();
+  for (const t of threads) {
+    if (!t.jobId) continue;
+    const entry = byJob.get(t.jobId) ?? { applied: [], positive: [] };
+    const ts = new Date(t.receivedAt).getTime();
+    if (t.label === "Applied") entry.applied.push(ts);
+    else if (POSITIVE_LABELS.has(t.label)) entry.positive.push(ts);
+    byJob.set(t.jobId, entry);
+  }
+
+  return windows.map((windowDays) => {
+    let appliedCount = 0;
+    let respondedCount = 0;
+    for (const { applied, positive } of byJob.values()) {
+      for (const appliedAt of applied) {
+        appliedCount++;
+        const deadline = appliedAt + windowDays * DAY_MS;
+        if (positive.some((p) => p >= appliedAt && p <= deadline)) {
+          respondedCount++;
+        }
+      }
+    }
+    const rate =
+      appliedCount === 0
+        ? 0
+        : Math.round((respondedCount / appliedCount) * 100);
+    return { windowDays, appliedCount, respondedCount, rate };
+  });
+};
