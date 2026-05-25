@@ -43,14 +43,24 @@ export function isEmailConfigured(): boolean {
   return Boolean(process.env.SMTP_HOST);
 }
 
-// Default sender: lazily imports nodemailer at call time. The specifier is a
-// runtime variable so neither TypeScript nor the bundler statically resolves
-// the optional (uninstalled-by-default) dependency; webpack emits a benign
-// "Critical dependency" warning. Never invoked in tests (a fake sender is
-// injected), so nodemailer is never required in CI.
+// Default sender: lazily imports nodemailer at call time. nodemailer is an
+// optional (uninstalled-by-default) dependency. We:
+//   1. hide the specifier behind a runtime variable so TypeScript and the
+//      bundlers can't statically resolve the missing module, and
+//   2. add `webpackIgnore`/`turbopackIgnore` magic comments so webpack and
+//      Turbopack also skip tracing this dynamic import — preventing the
+//      Phase 3 dev-time `Module not found: Can't resolve 'nodemailer'`
+//      that Turbopack threw once it began constant-propagating the
+//      variable specifier.
+// Node only resolves the import when SMTP is actually configured and this
+// sender is invoked. Never invoked in tests (a fake sender is injected).
 export const defaultSmtpSender: MailSender = async (message) => {
   const moduleName = "nodemailer";
-  const nodemailer = (await import(/* @vite-ignore */ moduleName)) as unknown as {
+  const nodemailer = (await import(
+    /* webpackIgnore: true */
+    /* turbopackIgnore: true */
+    moduleName
+  )) as unknown as {
     createTransport: (opts: Record<string, unknown>) => {
       sendMail: (msg: MailMessage) => Promise<unknown>;
     };
