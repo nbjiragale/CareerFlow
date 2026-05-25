@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CreateResume from "./CreateResume";
 import CreateCoverLetter from "./CreateCoverLetter";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader } from "../ui/card";
 import { getResumeList } from "@/actions/profile.actions";
 import { getCoverLetterList } from "@/actions/coverLetter.actions";
 import {
@@ -24,6 +24,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+// CAREERFLOW: redesign (PR E) — surface the Resumes page name + a
+// presentational filter chip strip (All / Resumes / Cover letters).
+import SegmentedControl, {
+  type SegmentOption,
+} from "@/components/design/SegmentedControl";
+
+type ResumesFilter = "all" | "resume" | "cover-letter";
+
+const FILTER_OPTIONS: SegmentOption<ResumesFilter>[] = [
+  { value: "all", label: "All" },
+  { value: "resume", label: "Resumes" },
+  { value: "cover-letter", label: "Cover letters" },
+];
 
 const ProfileContainer = () => {
   const [resumes, setResumes] = useState<Resume[]>([]);
@@ -124,6 +137,21 @@ const ProfileContainer = () => {
 
   const totalDocuments = totalResumes + totalCoverLetters;
 
+  // CAREERFLOW: redesign (PR E) — presentational filter over the already
+  // loaded `documents` array. No server-side change.
+  const [filter, setFilter] = useState<ResumesFilter>("all");
+  const visibleDocuments = useMemo(
+    () =>
+      filter === "all"
+        ? documents
+        : documents.filter((d) => d.type === filter),
+    [documents, filter],
+  );
+  const jobsCovered = useMemo(
+    () => documents.reduce((sum, d) => sum + (d.jobCount ?? 0), 0),
+    [documents],
+  );
+
   const createResume = () => {
     setResumeToEdit(null);
     setResumeDialogOpen(true);
@@ -154,14 +182,39 @@ const ProfileContainer = () => {
 
   const setResumeId = (id: string) => {};
 
+  // CAREERFLOW: redesign (PR E) — summary line per mockup:
+  // "N versions · X resumes, Y cover letters · used across K applications".
+  const summary = (() => {
+    if (loading && documents.length === 0) return "Loading documents…";
+    if (documents.length === 0) {
+      return "No documents yet — add your first resume or cover letter.";
+    }
+    const versions = `${totalDocuments} version${totalDocuments === 1 ? "" : "s"}`;
+    const mix = `${totalResumes} resume${totalResumes === 1 ? "" : "s"}, ${totalCoverLetters} cover letter${totalCoverLetters === 1 ? "" : "s"}`;
+    const coverage = `used across ${jobsCovered} application${jobsCovered === 1 ? "" : "s"}`;
+    return `${versions} · ${mix} · ${coverage}`;
+  })();
+
   return (
-    <Card>
-      <CardHeader className="flex-row justify-between items-center">
-        <CardTitle>Profile</CardTitle>
-        <div className="flex items-center">
+    <div className="flex flex-col gap-4">
+      {/* CAREERFLOW: redesign (PR E) — page-level header outside the card so
+          the title doesn't compete with the table header for visual weight. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold leading-none tracking-tight">
+            Resumes
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <SegmentedControl<ResumesFilter>
+            options={FILTER_OPTIONS}
+            value={filter}
+            onChange={setFilter}
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 gap-1">
+              <Button size="sm" className="h-8 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                   New
@@ -198,47 +251,65 @@ const ProfileContainer = () => {
             reloadDocuments={reloadDocuments}
           />
         </div>
-      </CardHeader>
-      <CardContent>
-        {loading && <Loading />}
-        {documents.length > 0 && (
-          <>
-            <DocumentTable
-              documents={documents}
-              editResume={onEditResume}
-              editCoverLetter={onEditCoverLetter}
-              reloadDocuments={reloadDocuments}
-            />
-            <div className="flex items-center justify-between mt-4">
-              <RecordsCount
-                count={documents.length}
-                total={totalDocuments}
-                label="documents"
+      </div>
+      <Card className="density-card p-0">
+        <CardHeader className="density-card-header sr-only">
+          <span>Documents</span>
+        </CardHeader>
+        <CardContent className="density-card-content p-0 pt-0">
+          {loading && documents.length === 0 && <Loading />}
+          {visibleDocuments.length > 0 ? (
+            <>
+              <DocumentTable
+                documents={visibleDocuments}
+                editResume={onEditResume}
+                editCoverLetter={onEditCoverLetter}
+                reloadDocuments={reloadDocuments}
               />
-              {totalDocuments > APP_CONSTANTS.RECORDS_PER_PAGE && (
-                <RecordsPerPageSelector
-                  value={recordsPerPage}
-                  onChange={setRecordsPerPage}
+              <div className="flex items-center justify-between mt-4 p-4">
+                <RecordsCount
+                  count={visibleDocuments.length}
+                  total={
+                    filter === "all"
+                      ? totalDocuments
+                      : visibleDocuments.length
+                  }
+                  label="documents"
                 />
-              )}
+                {totalDocuments > APP_CONSTANTS.RECORDS_PER_PAGE && (
+                  <RecordsPerPageSelector
+                    value={recordsPerPage}
+                    onChange={setRecordsPerPage}
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            !loading && (
+              <div className="p-6 text-center text-sm text-muted-foreground">
+                {filter === "all"
+                  ? "No documents yet — add your first resume or cover letter."
+                  : filter === "resume"
+                    ? "No resumes match this filter."
+                    : "No cover letters match this filter."}
+              </div>
+            )
+          )}
+          {resumes.length < totalResumes && (
+            <div className="flex justify-center p-4">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => loadDocuments(page + 1)}
+                disabled={loading}
+              >
+                {loading ? "Loading…" : "Load more"}
+              </Button>
             </div>
-          </>
-        )}
-        {resumes.length < totalResumes && (
-          <div className="flex justify-center p-4">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => loadDocuments(page + 1)}
-              disabled={loading}
-              className="btn btn-primary"
-            >
-              {loading ? "Loading..." : "Load More"}
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

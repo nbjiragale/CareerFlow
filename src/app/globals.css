@@ -148,6 +148,34 @@
   .grade-f { color: var(--grade-f); background: color-mix(in oklch, var(--grade-f) 12%, transparent); border-color: color-mix(in oklch, var(--grade-f) 28%, transparent); }
 }
 
+/* CAREERFLOW: redesign (PR E) — density mode. `comfortable` is the
+   default (matches today's spacing). `compact` shaves ~20-25% off the
+   card/table padding shared by the redesigned surfaces. The hook is
+   `data-density` on <html> (see DensityScript); subsequent redesign PRs
+   are expected to extend the rule set as more pages opt in. */
+[data-density="compact"] table :where(td, th) {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+[data-density="compact"] .density-card {
+  padding: 1rem;
+}
+[data-density="compact"] .density-card-header {
+  padding: 1rem 1rem 0.5rem;
+}
+[data-density="compact"] .density-card-content {
+  padding: 0 1rem 1rem;
+}
+[data-density="comfortable"] .density-card {
+  padding: 1.5rem;
+}
+[data-density="comfortable"] .density-card-header {
+  padding: 1.5rem 1.5rem 0.75rem;
+}
+[data-density="comfortable"] .density-card-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

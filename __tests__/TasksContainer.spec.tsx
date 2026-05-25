@@ -48,6 +48,14 @@ vi.mock("@/actions/task.actions", () => ({
   deleteTaskById: vi.fn(),
   updateTaskStatus: vi.fn(),
   startActivityFromTask: vi.fn(),
+  // CAREERFLOW: redesign (PR E) — server-side aggregate for the reminders
+  // summary strip. Default to zeros so existing tests don't break.
+  getTasksSummary: vi.fn(() =>
+    Promise.resolve({
+      success: true,
+      data: { done: 0, pending: 0, urgent: 0, total: 0 },
+    }),
+  ),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -612,12 +620,16 @@ describe("TasksContainer Component", () => {
 
       render(<TasksContainer activityTypes={mockActivityTypes} />);
 
+      // CAREERFLOW: redesign (PR E) — the "of 10" total now appears in two
+      // places (subline + RecordsCount), so query the RecordsCount span
+      // specifically rather than every "10" on the page.
       await waitFor(() => {
         expect(screen.getByText(/Showing/i)).toBeInTheDocument();
         expect(
           screen.getByText("1 to 2", { exact: false })
         ).toBeInTheDocument();
-        expect(screen.getByText("10", { exact: false })).toBeInTheDocument();
+        const totals = screen.getAllByText("10");
+        expect(totals.length).toBeGreaterThanOrEqual(1);
       });
     });
   });

@@ -1,20 +1,28 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "../ui/card";
 import { Button } from "../ui/button";
-import { ListFilter, Loader, PlusCircle, Filter, Search } from "lucide-react";
+import {
+  ListFilter,
+  Loader,
+  PlusCircle,
+  Filter,
+  Search,
+  BellRing,
+} from "lucide-react";
 import { Input } from "../ui/input";
 import {
   deleteTaskById,
   getTaskById,
   getTasksList,
+  getTasksSummary,
   updateTaskStatus,
   startActivityFromTask,
 } from "@/actions/task.actions";
@@ -84,6 +92,15 @@ function TasksContainer({
   const hasSearched = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  // CAREERFLOW: redesign (PR E) — server-side aggregate counts for the
+  // Reminders subline + DONE/PENDING/URGENT strip. Independent of the
+  // current statusFilter / page so the header is always accurate.
+  const [summary, setSummary] = useState<{
+    done: number;
+    pending: number;
+    urgent: number;
+    total: number;
+  }>({ done: 0, pending: 0, urgent: 0, total: 0 });
 
   // Avoid hydration mismatch with Radix UI components
   useEffect(() => {
@@ -125,10 +142,28 @@ function TasksContainer({
     [tasksPerPage],
   );
 
+  // CAREERFLOW: redesign (PR E) — refresh server-side summary counts; called
+  // on mount, when the activity-type filter changes, and after any mutation
+  // that can move a task between statuses.
+  const refreshSummary = useCallback(async () => {
+    const result = await getTasksSummary(filterKey);
+    if (result.success) {
+      setSummary(result.data);
+    }
+  }, [filterKey]);
+
   const reloadTasks = useCallback(async () => {
     await loadTasks(1, filterKey, statusFilter, searchTerm || undefined);
+    await refreshSummary();
     onTasksChanged?.();
-  }, [loadTasks, filterKey, statusFilter, searchTerm, onTasksChanged]);
+  }, [
+    loadTasks,
+    filterKey,
+    statusFilter,
+    searchTerm,
+    onTasksChanged,
+    refreshSummary,
+  ]);
 
   const onDeleteTask = async (taskId: string) => {
     const { success, message } = await deleteTaskById(taskId);
@@ -179,6 +214,8 @@ function TasksContainer({
         description: "Task status updated successfully",
       });
       onTasksChanged?.();
+      // Keep the summary strip in sync after a status change.
+      refreshSummary();
     } else {
       setTasks(originalTasks);
       toast({
@@ -216,6 +253,12 @@ function TasksContainer({
       await loadTasks(1, filterKey, statusFilter, searchTerm || undefined))();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadTasks, filterKey, statusFilter, recordsPerPage]);
+
+  // CAREERFLOW: redesign (PR E) — keep summary in sync with the activity-type
+  // filter. Status filter / search shouldn't change the aggregate counts.
+  useEffect(() => {
+    refreshSummary();
+  }, [refreshSummary]);
 
   // Debounced search effect
   useEffect(() => {
@@ -288,11 +331,71 @@ function TasksContainer({
     );
   };
 
+  // CAREERFLOW: redesign (PR E) — subline derives from the server-side
+  // aggregate so it stays coherent even when statusFilter excludes
+  // "complete" tasks from the visible page.
+  const subline = summary.total === 0
+    ? "No reminders yet"
+    : `${summary.done} / ${summary.total} done · ${summary.urgent} urgent`;
+
   return (
-    <>
-      <Card x-chunk="dashboard-tasks-chunk-0" className="h-full">
-        <CardHeader className="flex-row justify-between items-center">
-          <CardTitle>My Tasks</CardTitle>
+    <div className="flex flex-col gap-4">
+      {/* CAREERFLOW: redesign (PR E) — page header + secondary CTAs outside
+          the table card so they read as page chrome. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold leading-none tracking-tight">
+            Reminders
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{subline}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button asChild size="sm" variant="outline" className="h-8 gap-1">
+            <Link href="/dashboard/settings?section=notifications">
+              <BellRing className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Notification rules
+              </span>
+            </Link>
+          </Button>
+          <Button
+            size="sm"
+            className="h-8 gap-1"
+            onClick={addTaskForm}
+            data-testid="add-task-btn"
+          >
+            <PlusCircle className="h-3.5 w-3.5" />
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              New reminder
+            </span>
+          </Button>
+        </div>
+      </div>
+
+      {/* CAREERFLOW: redesign (PR E) — DONE / PENDING / URGENT strip. */}
+      <div className="grid grid-cols-3 gap-3">
+        <ProgressCell
+          label="Done"
+          value={summary.done}
+          tone="offer"
+          testId="reminders-stat-done"
+        />
+        <ProgressCell
+          label="Pending"
+          value={summary.pending}
+          tone="applied"
+          testId="reminders-stat-pending"
+        />
+        <ProgressCell
+          label="Urgent"
+          value={summary.urgent}
+          tone="interview"
+          testId="reminders-stat-urgent"
+        />
+      </div>
+
+      <Card x-chunk="dashboard-tasks-chunk-0" className="h-full density-card p-0">
+        <CardHeader className="density-card-header flex-row justify-end items-center">
           <div className="flex items-center">
             <div className="ml-auto flex items-center gap-2">
               <div className="relative">
@@ -369,22 +472,10 @@ function TasksContainer({
                   <span>Group by</span>
                 </Button>
               )}
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 gap-1"
-                onClick={addTaskForm}
-                data-testid="add-task-btn"
-              >
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  New Task
-                </span>
-              </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="density-card-content">
           {initialLoading && <Loading />}
           {!initialLoading && tasks.length > 0 && (
             <>
@@ -434,7 +525,52 @@ function TasksContainer({
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
       />
-    </>
+    </div>
+  );
+}
+
+// CAREERFLOW: redesign (PR E) — tiny stat cell for the DONE/PENDING/URGENT
+// strip above the reminders table. Reuses the status-pill palette via the
+// design token vars from globals.css.
+function ProgressCell({
+  label,
+  value,
+  tone,
+  testId,
+}: {
+  label: string;
+  value: number;
+  tone: "applied" | "offer" | "interview";
+  testId?: string;
+}) {
+  const toneVar =
+    tone === "offer"
+      ? "var(--st-offer)"
+      : tone === "interview"
+        ? "var(--st-interview)"
+        : "var(--st-applied)";
+  return (
+    <div
+      className="density-card rounded-lg border bg-card text-card-foreground shadow-sm"
+      data-testid={testId}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          {label}
+        </span>
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{ background: toneVar }}
+          aria-hidden="true"
+        />
+      </div>
+      <div
+        className="mt-2 text-2xl font-semibold tabular-nums"
+        style={{ color: toneVar }}
+      >
+        {value}
+      </div>
+    </div>
   );
 }
 

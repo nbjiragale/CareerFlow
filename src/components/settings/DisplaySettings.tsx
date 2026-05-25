@@ -19,13 +19,42 @@ import { useTheme } from "next-themes";
 import { Loader2 } from "lucide-react";
 import { getUserSettings, updateDisplaySettings } from "@/actions/userSettings.actions";
 
+// CAREERFLOW: redesign (PR E) — Appearance form now also captures density.
 const appearanceFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"], {
     error: "Please select a theme.",
   }),
+  density: z.enum(["comfortable", "compact"], {
+    error: "Please select a density.",
+  }),
 });
 
 type AppearanceFormValues = z.infer<typeof appearanceFormSchema>;
+
+const DENSITY_STORAGE_KEY = "careerflow-density";
+
+// CAREERFLOW: redesign (PR E) — split the DOM attribute write (cheap, used
+// for live preview while the user is toggling the radio) from the localStorage
+// write (only happens on save, so an abandoned toggle doesn't desync with the
+// server-persisted value on the next page load).
+function previewDensityOnDocument(density: "comfortable" | "compact") {
+  if (typeof document === "undefined") return;
+  document.documentElement.setAttribute("data-density", density);
+}
+
+function persistDensityToLocalStorage(density: "comfortable" | "compact") {
+  try {
+    window.localStorage.setItem(DENSITY_STORAGE_KEY, density);
+  } catch {
+    // localStorage may be unavailable (private mode, SSR snapshots, …);
+    // density still applies for the rest of the session via the DOM attr.
+  }
+}
+
+function applyDensityToDocument(density: "comfortable" | "compact") {
+  previewDensityOnDocument(density);
+  persistDensityToLocalStorage(density);
+}
 
 function DisplaySettings() {
   const { setTheme, theme, systemTheme } = useTheme();
@@ -36,6 +65,7 @@ function DisplaySettings() {
     resolver: zodResolver(appearanceFormSchema),
     defaultValues: {
       theme: "system",
+      density: "comfortable",
     },
   });
 
@@ -44,17 +74,22 @@ function DisplaySettings() {
       setIsLoading(true);
       try {
         const result = await getUserSettings();
-        if (result.success && result.data?.settings?.display?.theme) {
-          const savedTheme = result.data.settings.display.theme;
-          form.reset({ theme: savedTheme });
-          setTheme(savedTheme);
-        } else if (theme) {
-          form.reset({ theme: theme as "light" | "dark" | "system" });
-        }
+        const savedTheme = result?.data?.settings?.display?.theme;
+        const savedDensity = result?.data?.settings?.display?.density;
+        const initialTheme: "light" | "dark" | "system" =
+          savedTheme ?? (theme as "light" | "dark" | "system") ?? "system";
+        const initialDensity: "comfortable" | "compact" =
+          savedDensity ?? "comfortable";
+        form.reset({ theme: initialTheme, density: initialDensity });
+        if (savedTheme) setTheme(savedTheme);
+        applyDensityToDocument(initialDensity);
       } catch (error) {
         console.error("Error fetching display settings:", error);
         if (theme) {
-          form.reset({ theme: theme as "light" | "dark" | "system" });
+          form.reset({
+            theme: theme as "light" | "dark" | "system",
+            density: "comfortable",
+          });
         }
       } finally {
         setIsLoading(false);
@@ -67,12 +102,16 @@ function DisplaySettings() {
   async function onSubmit(data: AppearanceFormValues) {
     setIsSaving(true);
     try {
-      const result = await updateDisplaySettings({ theme: data.theme });
+      const result = await updateDisplaySettings({
+        theme: data.theme,
+        density: data.density,
+      });
       if (result.success) {
         setTheme(data.theme);
+        applyDensityToDocument(data.density);
         toast({
           variant: "success",
-          title: "Your selected theme has been saved.",
+          title: "Your appearance preferences have been saved.",
         });
       } else {
         toast({
@@ -102,7 +141,7 @@ function DisplaySettings() {
             Customize the look and feel of the application.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" role="status" aria-label="Loading settings">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span>Loading settings...</span>
         </div>
@@ -173,6 +212,79 @@ function DisplaySettings() {
                           )}
                           <span className="block w-full p-2 text-center font-normal">
                             System
+                          </span>
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormItem>
+                )}
+              />
+
+              {/* CAREERFLOW: redesign (PR E) — density picker. */}
+              <FormField
+                control={form.control}
+                name="density"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel>Density</FormLabel>
+                    <FormDescription>
+                      Comfortable adds breathing room; Compact tightens cards
+                      and tables for power users.
+                    </FormDescription>
+                    <FormMessage />
+                    <RadioGroup
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // CAREERFLOW: redesign (PR E) — preview only.
+                        // The localStorage write is deferred to onSubmit
+                        // so abandoned toggles don't persist past reload.
+                        previewDensityOnDocument(
+                          value as "comfortable" | "compact",
+                        );
+                      }}
+                      value={field.value}
+                      className="grid max-w-lg sm:grid-cols-2 gap-4 pt-2"
+                    >
+                      <FormItem>
+                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary block cursor-pointer">
+                          <FormControl>
+                            <RadioGroupItem
+                              value="comfortable"
+                              className="sr-only"
+                              data-testid="density-comfortable"
+                            />
+                          </FormControl>
+                          <div className="rounded-md border-2 border-muted p-3 hover:border-accent">
+                            <div className="space-y-2">
+                              <div className="h-2 w-[60%] rounded bg-muted-foreground/30" />
+                              <div className="h-2 w-[80%] rounded bg-muted-foreground/30" />
+                              <div className="h-2 w-[50%] rounded bg-muted-foreground/30" />
+                            </div>
+                          </div>
+                          <span className="block w-full p-2 text-center font-normal">
+                            Comfortable
+                          </span>
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary block cursor-pointer">
+                          <FormControl>
+                            <RadioGroupItem
+                              value="compact"
+                              className="sr-only"
+                              data-testid="density-compact"
+                            />
+                          </FormControl>
+                          <div className="rounded-md border-2 border-muted p-2 hover:border-accent">
+                            <div className="space-y-1">
+                              <div className="h-1.5 w-[60%] rounded bg-muted-foreground/30" />
+                              <div className="h-1.5 w-[80%] rounded bg-muted-foreground/30" />
+                              <div className="h-1.5 w-[50%] rounded bg-muted-foreground/30" />
+                              <div className="h-1.5 w-[70%] rounded bg-muted-foreground/30" />
+                            </div>
+                          </div>
+                          <span className="block w-full p-2 text-center font-normal">
+                            Compact
                           </span>
                         </FormLabel>
                       </FormItem>

@@ -36,8 +36,10 @@ describe("ProfileContainer Component", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
-  it("should render the profile container component", () => {
-    expect(screen.getByText(/profile/i)).toBeInTheDocument();
+  it("should render the resumes container component", () => {
+    expect(
+      screen.getByRole("heading", { level: 1, name: /resumes/i }),
+    ).toBeInTheDocument();
   });
 
   it("should open the create resume dialog upon clicking create resume button", async () => {

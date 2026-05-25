@@ -35,6 +35,15 @@ vi.mock("next-auth/providers/credentials", () => ({
 
 vi.mock("@/actions/task.actions", () => ({
   getTasksList: vi.fn(),
+  // CAREERFLOW: redesign (PR E) — TasksContainer now reads server-side
+  // aggregates for its summary strip. Stub with zeros to keep the existing
+  // assertions stable.
+  getTasksSummary: vi.fn(() =>
+    Promise.resolve({
+      success: true,
+      data: { done: 0, pending: 0, urgent: 0, total: 0 },
+    }),
+  ),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -148,8 +157,10 @@ describe("TasksPageClient Component", () => {
       expect(screen.getByText("Development")).toBeInTheDocument();
       expect(screen.getByText("Testing")).toBeInTheDocument();
 
-      // Check if container is rendered
-      expect(screen.getByText("My Tasks")).toBeInTheDocument();
+      // CAREERFLOW: redesign (PR E) — page heading is "Reminders".
+      expect(
+        screen.getByRole("heading", { level: 1, name: /reminders/i }),
+      ).toBeInTheDocument();
     });
 
     it("should display total task count in sidebar", () => {
@@ -295,7 +306,9 @@ describe("TasksPageClient Component", () => {
       );
 
       expect(screen.getByText("Activity Types")).toBeInTheDocument();
-      expect(screen.getByText("My Tasks")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 1, name: /reminders/i }),
+      ).toBeInTheDocument();
     });
 
     it("should show 0 total tasks when no tasks exist", () => {
