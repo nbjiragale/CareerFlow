@@ -1,22 +1,27 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const dynamic = "force-dynamic";
 
-const inter = Inter({
+// CAREERFLOW: redesign — Geist + Geist Mono per the design system.
+const geistSans = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist-sans",
+});
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | JobSync",
-    default: "JobSync",
+    template: "%s | CareerFlow",
+    default: "CareerFlow",
   },
-  description: "Job Application Tracking System",
+  description: "AI-powered job application lifecycle manager",
 };
 
 interface Props {
@@ -29,7 +34,8 @@ export default function RootLayout({ children }: Readonly<Props>) {
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          inter.variable
+          geistSans.variable,
+          geistMono.variable
         )}
       >
         <ThemeProvider
