@@ -33,15 +33,27 @@ type AppearanceFormValues = z.infer<typeof appearanceFormSchema>;
 
 const DENSITY_STORAGE_KEY = "careerflow-density";
 
-function applyDensityToDocument(density: "comfortable" | "compact") {
+// CAREERFLOW: redesign (PR E) — split the DOM attribute write (cheap, used
+// for live preview while the user is toggling the radio) from the localStorage
+// write (only happens on save, so an abandoned toggle doesn't desync with the
+// server-persisted value on the next page load).
+function previewDensityOnDocument(density: "comfortable" | "compact") {
   if (typeof document === "undefined") return;
   document.documentElement.setAttribute("data-density", density);
+}
+
+function persistDensityToLocalStorage(density: "comfortable" | "compact") {
   try {
     window.localStorage.setItem(DENSITY_STORAGE_KEY, density);
   } catch {
     // localStorage may be unavailable (private mode, SSR snapshots, …);
     // density still applies for the rest of the session via the DOM attr.
   }
+}
+
+function applyDensityToDocument(density: "comfortable" | "compact") {
+  previewDensityOnDocument(density);
+  persistDensityToLocalStorage(density);
 }
 
 function DisplaySettings() {
@@ -223,7 +235,10 @@ function DisplaySettings() {
                     <RadioGroup
                       onValueChange={(value) => {
                         field.onChange(value);
-                        applyDensityToDocument(
+                        // CAREERFLOW: redesign (PR E) — preview only.
+                        // The localStorage write is deferred to onSubmit
+                        // so abandoned toggles don't persist past reload.
+                        previewDensityOnDocument(
                           value as "comfortable" | "compact",
                         );
                       }}

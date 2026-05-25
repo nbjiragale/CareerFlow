@@ -35,6 +35,15 @@ vi.mock("next-auth/providers/credentials", () => ({
 
 vi.mock("@/actions/task.actions", () => ({
   getTasksList: vi.fn(),
+  // CAREERFLOW: redesign (PR E) — TasksContainer now reads server-side
+  // aggregates for its summary strip. Stub with zeros to keep the existing
+  // assertions stable.
+  getTasksSummary: vi.fn(() =>
+    Promise.resolve({
+      success: true,
+      data: { done: 0, pending: 0, urgent: 0, total: 0 },
+    }),
+  ),
 }));
 
 vi.mock("next/navigation", () => ({

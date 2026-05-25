@@ -442,3 +442,53 @@ export const getActivityTypesWithTaskCounts = async (): Promise<
     return handleError(error, msg);
   }
 };
+
+// CAREERFLOW: redesign (PR E) — aggregate counts for the Reminders summary
+// strip + subline ("X / Y done · Z urgent"). Independent of the current
+// statusFilter / pagination so the page-level header reflects ALL tasks the
+// user owns, not just the in-progress/needs-attention page they're looking
+// at. Optionally scoped by activityTypeId to mirror the sidebar filter.
+export const getTasksSummary = async (
+  filter?: string,
+): Promise<
+  | { success: true; data: { done: number; pending: number; urgent: number; total: number } }
+  | { success: false; message: string }
+> => {
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const baseWhere: { userId: string; activityTypeId?: string } = {
+      userId: user.id,
+    };
+    if (filter) {
+      baseWhere.activityTypeId = filter;
+    }
+
+    const [done, urgent, inProgress, total] = await Promise.all([
+      prisma.task.count({ where: { ...baseWhere, status: "complete" } }),
+      prisma.task.count({
+        where: { ...baseWhere, status: "needs-attention" },
+      }),
+      prisma.task.count({ where: { ...baseWhere, status: "in-progress" } }),
+      prisma.task.count({ where: baseWhere }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        done,
+        urgent,
+        // Pending == any task the user still has to act on.
+        pending: inProgress + urgent,
+        total,
+      },
+    };
+  } catch (error) {
+    const msg = "Failed to fetch tasks summary.";
+    return handleError(error, msg) as { success: false; message: string };
+  }
+};

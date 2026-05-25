@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -22,6 +22,7 @@ import {
   deleteTaskById,
   getTaskById,
   getTasksList,
+  getTasksSummary,
   updateTaskStatus,
   startActivityFromTask,
 } from "@/actions/task.actions";
@@ -91,6 +92,15 @@ function TasksContainer({
   const hasSearched = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  // CAREERFLOW: redesign (PR E) — server-side aggregate counts for the
+  // Reminders subline + DONE/PENDING/URGENT strip. Independent of the
+  // current statusFilter / page so the header is always accurate.
+  const [summary, setSummary] = useState<{
+    done: number;
+    pending: number;
+    urgent: number;
+    total: number;
+  }>({ done: 0, pending: 0, urgent: 0, total: 0 });
 
   // Avoid hydration mismatch with Radix UI components
   useEffect(() => {
@@ -132,10 +142,28 @@ function TasksContainer({
     [tasksPerPage],
   );
 
+  // CAREERFLOW: redesign (PR E) — refresh server-side summary counts; called
+  // on mount, when the activity-type filter changes, and after any mutation
+  // that can move a task between statuses.
+  const refreshSummary = useCallback(async () => {
+    const result = await getTasksSummary(filterKey);
+    if (result.success) {
+      setSummary(result.data);
+    }
+  }, [filterKey]);
+
   const reloadTasks = useCallback(async () => {
     await loadTasks(1, filterKey, statusFilter, searchTerm || undefined);
+    await refreshSummary();
     onTasksChanged?.();
-  }, [loadTasks, filterKey, statusFilter, searchTerm, onTasksChanged]);
+  }, [
+    loadTasks,
+    filterKey,
+    statusFilter,
+    searchTerm,
+    onTasksChanged,
+    refreshSummary,
+  ]);
 
   const onDeleteTask = async (taskId: string) => {
     const { success, message } = await deleteTaskById(taskId);
@@ -186,6 +214,8 @@ function TasksContainer({
         description: "Task status updated successfully",
       });
       onTasksChanged?.();
+      // Keep the summary strip in sync after a status change.
+      refreshSummary();
     } else {
       setTasks(originalTasks);
       toast({
@@ -223,6 +253,12 @@ function TasksContainer({
       await loadTasks(1, filterKey, statusFilter, searchTerm || undefined))();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadTasks, filterKey, statusFilter, recordsPerPage]);
+
+  // CAREERFLOW: redesign (PR E) — keep summary in sync with the activity-type
+  // filter. Status filter / search shouldn't change the aggregate counts.
+  useEffect(() => {
+    refreshSummary();
+  }, [refreshSummary]);
 
   // Debounced search effect
   useEffect(() => {
@@ -295,23 +331,12 @@ function TasksContainer({
     );
   };
 
-  // CAREERFLOW: redesign (PR E) — "X / Y done this week · Z urgent" line +
-  // DONE / PENDING / URGENT progress strip + Today/Tomorrow groupings.
-  // All derived from the existing tasks state; no new data model.
-  const summary = useMemo(() => {
-    const done = tasks.filter((t) => t.status === "complete").length;
-    const urgent = tasks.filter(
-      (t) => t.status === "needs-attention",
-    ).length;
-    const pending = tasks.filter(
-      (t) => t.status === "in-progress" || t.status === "needs-attention",
-    ).length;
-    return { done, urgent, pending };
-  }, [tasks]);
-
-  const subline = totalTasks === 0
+  // CAREERFLOW: redesign (PR E) — subline derives from the server-side
+  // aggregate so it stays coherent even when statusFilter excludes
+  // "complete" tasks from the visible page.
+  const subline = summary.total === 0
     ? "No reminders yet"
-    : `${summary.done} / ${totalTasks} done · ${summary.urgent} urgent`;
+    : `${summary.done} / ${summary.total} done · ${summary.urgent} urgent`;
 
   return (
     <div className="flex flex-col gap-4">

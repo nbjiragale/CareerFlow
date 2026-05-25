@@ -7,6 +7,7 @@ import {
   deleteTaskById,
   startActivityFromTask,
   getActivityTypesWithTaskCounts,
+  getTasksSummary,
 } from "@/actions/task.actions";
 import { getCurrentUser } from "@/utils/user.utils";
 import { PrismaClient } from "@prisma/client";
@@ -821,6 +822,89 @@ describe("taskActions", () => {
       );
 
       const result = await getActivityTypesWithTaskCounts();
+
+      expect(result).toEqual({
+        success: false,
+        message: "Database error",
+      });
+    });
+  });
+
+  // CAREERFLOW: redesign (PR E) — getTasksSummary backs the Reminders page
+  // header. It must count across ALL of the user's tasks (independent of any
+  // statusFilter / page) and respect an optional activityTypeId filter.
+  describe("getTasksSummary", () => {
+    it("should aggregate counts across all of the user's tasks", async () => {
+      (getCurrentUser as any).mockResolvedValue(mockUser);
+      // Order of count() calls in the action: done, urgent, inProgress, total.
+      (prisma.task.count as any)
+        .mockResolvedValueOnce(5)
+        .mockResolvedValueOnce(2)
+        .mockResolvedValueOnce(7)
+        .mockResolvedValueOnce(14);
+
+      const result = await getTasksSummary();
+
+      expect(result).toEqual({
+        success: true,
+        data: { done: 5, urgent: 2, pending: 9, total: 14 },
+      });
+      expect(prisma.task.count).toHaveBeenNthCalledWith(1, {
+        where: { userId: mockUser.id, status: "complete" },
+      });
+      expect(prisma.task.count).toHaveBeenNthCalledWith(2, {
+        where: { userId: mockUser.id, status: "needs-attention" },
+      });
+      expect(prisma.task.count).toHaveBeenNthCalledWith(3, {
+        where: { userId: mockUser.id, status: "in-progress" },
+      });
+      expect(prisma.task.count).toHaveBeenNthCalledWith(4, {
+        where: { userId: mockUser.id },
+      });
+    });
+
+    it("should scope counts by activity type when filter is provided", async () => {
+      (getCurrentUser as any).mockResolvedValue(mockUser);
+      (prisma.task.count as any)
+        .mockResolvedValueOnce(1)
+        .mockResolvedValueOnce(0)
+        .mockResolvedValueOnce(3)
+        .mockResolvedValueOnce(4);
+
+      const result = await getTasksSummary("type-1");
+
+      expect(result).toEqual({
+        success: true,
+        data: { done: 1, urgent: 0, pending: 3, total: 4 },
+      });
+      expect(prisma.task.count).toHaveBeenNthCalledWith(1, {
+        where: {
+          userId: mockUser.id,
+          activityTypeId: "type-1",
+          status: "complete",
+        },
+      });
+      expect(prisma.task.count).toHaveBeenNthCalledWith(4, {
+        where: { userId: mockUser.id, activityTypeId: "type-1" },
+      });
+    });
+
+    it("should return error when user is not authenticated", async () => {
+      (getCurrentUser as any).mockResolvedValue(null);
+
+      const result = await getTasksSummary();
+
+      expect(result).toEqual({
+        success: false,
+        message: "Not authenticated",
+      });
+    });
+
+    it("should handle database errors", async () => {
+      (getCurrentUser as any).mockResolvedValue(mockUser);
+      (prisma.task.count as any).mockRejectedValue(new Error("Database error"));
+
+      const result = await getTasksSummary();
 
       expect(result).toEqual({
         success: false,
