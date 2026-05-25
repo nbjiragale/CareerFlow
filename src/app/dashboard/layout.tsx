@@ -3,6 +3,8 @@ import Sidebar from "@/components/Sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { ActivityProvider } from "@/context/ActivityContext";
 import { GlobalActivityBanner } from "@/components/activities/GlobalActivityBanner";
+// CAREERFLOW: Phase 3 — app-wide reminder SSE subscription.
+import ReminderListener from "@/components/notifications/ReminderListener";
 
 export default function RootLayout({
   children,
@@ -16,6 +18,7 @@ export default function RootLayout({
         <div className="flex flex-1 flex-col sm:gap-4 sm:py-4 sm:pl-60">
           <Header />
           <GlobalActivityBanner />
+          <ReminderListener />
           <main className="flex-1 md:block lg:grid items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-4 lg:grid-cols-3 xl:grid-cols-3">
             {children}
           </main>

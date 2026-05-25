@@ -393,6 +393,9 @@ describe("taskActions", () => {
           percentComplete: updateData.percentComplete,
           dueDate: updateData.dueDate,
           activityTypeId: updateData.activityTypeId,
+          // CAREERFLOW: Phase 3 — reminder re-arm on update.
+          remindAt: null,
+          remindedAt: null,
         },
         include: {
           activityType: true,

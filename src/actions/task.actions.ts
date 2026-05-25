@@ -131,6 +131,12 @@ export const createTask = async (
         dueDate: validatedData.dueDate,
         activityTypeId: validatedData.activityTypeId,
         userId: user.id,
+        // CAREERFLOW: Phase 3 — reminder fields. remindChannels only set when
+        // provided so the schema default (["browser"]) applies otherwise.
+        remindAt: validatedData.remindAt ?? undefined,
+        ...(validatedData.remindChannels
+          ? { remindChannels: JSON.stringify(validatedData.remindChannels) }
+          : {}),
       },
       include: {
         activityType: true,
@@ -173,6 +179,13 @@ export const updateTask = async (
         percentComplete: validatedData.percentComplete,
         dueDate: validatedData.dueDate,
         activityTypeId: validatedData.activityTypeId,
+        // CAREERFLOW: Phase 3 — re-arm the reminder when remindAt is provided
+        // (clearing remindedAt so the dispatcher fires it again).
+        remindAt: validatedData.remindAt ?? null,
+        remindedAt: null,
+        ...(validatedData.remindChannels
+          ? { remindChannels: JSON.stringify(validatedData.remindChannels) }
+          : {}),
       },
       include: {
         activityType: true,
@@ -340,6 +353,40 @@ export const startActivityFromTask = async (
     return { success: true, data: activity };
   } catch (error) {
     const msg = "Failed to start activity from task.";
+    return handleError(error, msg);
+  }
+};
+
+// CAREERFLOW: Phase 3 — schedules a throwaway reminder ~30s out so users can
+// verify the notification flow from Settings → Notifications. Fires on the
+// next 1-min dispatcher tick (so within ~90s worst case).
+export const createTestReminder = async (): Promise<any | undefined> => {
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const remindAt = new Date(Date.now() + 30_000);
+
+    const task = await prisma.task.create({
+      data: {
+        title: "Test reminder",
+        description:
+          "This is a test reminder from CareerFlow → Settings → Notifications.",
+        status: "in-progress",
+        priority: 5,
+        percentComplete: 0,
+        userId: user.id,
+        remindAt,
+        remindChannels: JSON.stringify(["browser"]),
+      },
+    });
+
+    return { success: true, data: { id: task.id, remindAt } };
+  } catch (error) {
+    const msg = "Failed to schedule test reminder.";
     return handleError(error, msg);
   }
 };

@@ -8,6 +8,8 @@ import DisplaySettings from "@/components/settings/DisplaySettings";
 import IntegrationsSettings from "@/components/settings/IntegrationsSettings";
 // CAREERFLOW: Phase 2 — AI usage panel.
 import UsageSettings from "@/components/settings/UsageSettings";
+// CAREERFLOW: Phase 3 — reminder notification settings panel.
+import NotificationsSettings from "@/components/settings/NotificationsSettings";
 import SettingsSidebar, { type SettingsSection } from "@/components/settings/SettingsSidebar";
 
 function Settings() {
@@ -24,6 +26,7 @@ function Settings() {
       section === "api-keys" ||
       section === "integrations" ||
       section === "usage" ||
+      section === "notifications" ||
       section === "appearance"
     ) {
       setActiveSection(section);
@@ -45,6 +48,7 @@ function Settings() {
           {activeSection === "api-keys" && <ApiKeySettings />}
           {activeSection === "integrations" && <IntegrationsSettings />}
           {activeSection === "usage" && <UsageSettings />}
+          {activeSection === "notifications" && <NotificationsSettings />}
           {activeSection === "appearance" && <DisplaySettings />}
         </div>
       </div>

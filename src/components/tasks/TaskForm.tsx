@@ -49,6 +49,29 @@ const statusOptions = Object.entries(TASK_STATUSES).map(([value, label]) => ({
   value,
 }));
 
+// CAREERFLOW: Phase 3 — reminder channels.
+type RemindChannel = "browser" | "email";
+const REMIND_CHANNELS: { value: RemindChannel; label: string }[] = [
+  { value: "browser", label: "Browser" },
+  { value: "email", label: "Email" },
+];
+
+function parseRemindChannels(raw?: string | null): RemindChannel[] {
+  if (!raw) return ["browser"];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const valid = parsed.filter(
+        (c): c is RemindChannel => c === "browser" || c === "email",
+      );
+      return valid.length > 0 ? valid : ["browser"];
+    }
+  } catch {
+    // fall through
+  }
+  return ["browser"];
+}
+
 export function TaskForm({
   activityTypes,
   editTask,
@@ -68,6 +91,9 @@ export function TaskForm({
       percentComplete: 0,
       dueDate: undefined,
       activityTypeId: undefined,
+      // CAREERFLOW: Phase 3 — reminder fields.
+      remindAt: undefined,
+      remindChannels: ["browser"],
     },
   });
 
@@ -75,6 +101,8 @@ export function TaskForm({
 
   const priorityValue = watch("priority");
   const percentCompleteValue = watch("percentComplete");
+  // CAREERFLOW: Phase 3 — selected reminder channels.
+  const remindChannels = watch("remindChannels") ?? [];
 
   useEffect(() => {
     if (editTask) {
@@ -88,6 +116,8 @@ export function TaskForm({
         percentComplete: editTask.percentComplete,
         dueDate: editTask.dueDate ? new Date(editTask.dueDate) : undefined,
         activityTypeId: editTask.activityTypeId || undefined,
+        remindAt: editTask.remindAt ? new Date(editTask.remindAt) : undefined,
+        remindChannels: parseRemindChannels(editTask.remindChannels),
       });
     } else {
       reset({
@@ -98,6 +128,8 @@ export function TaskForm({
         percentComplete: 0,
         dueDate: undefined,
         activityTypeId: undefined,
+        remindAt: undefined,
+        remindChannels: ["browser"],
       });
     }
   }, [editTask, reset]);
@@ -278,6 +310,63 @@ export function TaskForm({
                         presets={true}
                         isEnabled={true}
                       />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* CAREERFLOW: Phase 3 — Remind At */}
+              <div>
+                <FormField
+                  control={form.control}
+                  name="remindAt"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Remind me on</FormLabel>
+                      <DatePicker field={field} presets={true} isEnabled={true} />
+                      <p className="text-xs text-muted-foreground">
+                        When to fire a notification. Leave empty for no reminder.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* CAREERFLOW: Phase 3 — Reminder channels */}
+              <div className="md:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="remindChannels"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Reminder channels</FormLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {REMIND_CHANNELS.map((channel) => {
+                          const selected = remindChannels.includes(channel.value);
+                          return (
+                            <Button
+                              key={channel.value}
+                              type="button"
+                              size="sm"
+                              variant={selected ? "default" : "outline"}
+                              onClick={() => {
+                                const next = selected
+                                  ? remindChannels.filter((c) => c !== channel.value)
+                                  : [...remindChannels, channel.value];
+                                field.onChange(next);
+                              }}
+                            >
+                              {channel.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Email requires SMTP configured on the server; otherwise
+                        it is skipped.
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
