@@ -6,6 +6,15 @@ import prisma from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { SignupFormSchema } from "@/models/signupForm.schema";
 import { JOB_SOURCES, JOB_STATUSES } from "@/lib/constants";
+import { getCurrentUser } from "@/utils/user.utils";
+
+// CAREERFLOW: Phase 3 (PR #9) — exposes the signed-in user's email to client
+// components (the account-deletion confirmation gate). No SessionProvider is
+// wired, so client components read it via this server action.
+export async function getCurrentUserEmail(): Promise<string | null> {
+  const user = await getCurrentUser();
+  return user?.email ?? null;
+}
 
 export async function signup(formData: {
   name: string;
