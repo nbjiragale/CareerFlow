@@ -1,7 +1,8 @@
 "use client";
 
 // CAREERFLOW: Phase 1 — added "integrations" section for Gmail.
-import { Bot, Key, Palette, Plug } from "lucide-react";
+// CAREERFLOW: Phase 2 — added "usage" section for AI audit log.
+import { Bot, Key, Palette, Plug, BarChart3 } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +10,7 @@ export type SettingsSection =
   | "ai-provider"
   | "api-keys"
   | "integrations"
+  | "usage"
   | "appearance";
 
 const SETTINGS_SECTIONS: {
@@ -20,6 +22,8 @@ const SETTINGS_SECTIONS: {
   { id: "api-keys", label: "API Keys", icon: Key },
   // CAREERFLOW: Phase 1 — Gmail integration lives here.
   { id: "integrations", label: "Integrations", icon: Plug },
+  // CAREERFLOW: Phase 2 — AI usage + soft cap.
+  { id: "usage", label: "Usage", icon: BarChart3 },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 

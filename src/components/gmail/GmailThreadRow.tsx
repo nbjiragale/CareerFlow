@@ -5,11 +5,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
+// CAREERFLOW: Phase 2 — AI reply-draft drawer.
+import DraftReplyDrawer from "./DraftReplyDrawer";
 
 export interface ThreadRow {
   id: string;
@@ -60,6 +62,8 @@ function GmailThreadRow({
   onCorrected,
 }: GmailThreadRowProps) {
   const [correcting, setCorrecting] = useState<string | null>(null);
+  // CAREERFLOW: Phase 2 — draft reply drawer toggle.
+  const [draftOpen, setDraftOpen] = useState(false);
 
   const submitCorrection = async (label: string) => {
     setCorrecting(label);
@@ -146,9 +150,9 @@ function GmailThreadRow({
         </div>
       </div>
 
-      {allowCorrection && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {LABEL_OPTIONS.map((option) => (
+      <div className="mt-3 flex flex-wrap gap-2">
+        {allowCorrection &&
+          LABEL_OPTIONS.map((option) => (
             <Button
               key={option}
               variant={option === thread.label ? "default" : "outline"}
@@ -162,8 +166,24 @@ function GmailThreadRow({
               {option}
             </Button>
           ))}
-        </div>
-      )}
+        {/* CAREERFLOW: Phase 2 — AI reply-draft button (always available). */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setDraftOpen(true)}
+        >
+          <Sparkles className="mr-1 h-3 w-3" />
+          Draft reply
+        </Button>
+      </div>
+
+      <DraftReplyDrawer
+        open={draftOpen}
+        onOpenChange={setDraftOpen}
+        emailThreadId={thread.id}
+        fromAddress={thread.fromAddress}
+        subject={thread.subject}
+      />
     </div>
   );
 }

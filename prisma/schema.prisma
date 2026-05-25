@@ -38,6 +38,9 @@ model User {
   OAuthToken                    OAuthToken[]
   EmailThread                   EmailThread[]
   EmailClassificationCorrection EmailClassificationCorrection[]
+  // CAREERFLOW: back-relations for Phase 2 (JD eval + reply drafts + usage audit).
+  AiDraft                       AiDraft[]
+  AiAuditLog                    AiAuditLog[]
 }
 
 model ApiKey {
@@ -317,6 +320,16 @@ model Job {
   // CAREERFLOW: back-relation to Gmail email threads linked to this Job (Phase 1).
   EmailThread EmailThread[]
 
+  // CAREERFLOW: Phase 2 — JD evaluation result persistence. evaluationJson holds
+  // the full JdEvaluationSchema payload as a JSON-encoded string (SQLite has no
+  // native JSON). evaluationGrade is denormalized for cheap filtering/listing.
+  evaluationGrade String?
+  evaluationJson  String?
+  evaluatedAt     DateTime?
+
+  // CAREERFLOW: Phase 2 — AI-generated reply drafts linked to this Job.
+  AiDraft AiDraft[]
+
   @@index([userId, automationId])
   @@index([userId, discoveryStatus])
 }
@@ -538,6 +551,9 @@ model EmailThread {
 
   Correction EmailClassificationCorrection?
 
+  // CAREERFLOW: Phase 2 — AI-generated reply drafts associated with this thread.
+  AiDraft AiDraft[]
+
   @@unique([userId, gmailThreadId])
   @@index([userId, receivedAt])
   @@index([userId, needsReview])
@@ -559,4 +575,55 @@ model EmailClassificationCorrection {
   correctedAt        DateTime    @default(now())
 
   @@index([userId, correctedAt])
+}
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: Phase 2 — JD evaluation, reply drafts, and AI usage audit.
+//
+// AiDraft persists AI-generated reply suggestions per Gmail thread (and
+// optionally per Job). Never sent autonomously — the UI exposes Copy +
+// mailto only (PRD §9.5 hard constraint).
+//
+// AiAuditLog records every paid AI call so the user can see what they're
+// spending in Settings → Usage. Powers PRD R6 mitigation.
+// ---------------------------------------------------------------------------
+model AiDraft {
+  id            String       @id @default(uuid())
+  userId        String
+  User          User         @relation(fields: [userId], references: [id])
+  emailThreadId String?
+  EmailThread   EmailThread? @relation(fields: [emailThreadId], references: [id], onDelete: SetNull)
+  jobId         String?
+  Job           Job?         @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  draftType     String // "reply" | "follow-up" | "thank-you" | "confirm"
+  subject       String?
+  content       String
+  tone          String?
+  createdAt     DateTime     @default(now())
+
+  @@index([userId, createdAt])
+  @@index([emailThreadId])
+  @@index([jobId])
+}
+
+model AiAuditLog {
+  id               String   @id @default(uuid())
+  userId           String
+  User             User     @relation(fields: [userId], references: [id])
+  feature          String // "evaluate" | "reply-draft"
+  provider         String
+  model            String
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  totalTokens      Int      @default(0)
+  costUsd          Float    @default(0)
+  msElapsed        Int      @default(0)
+  status           String // "success" | "error"
+  errorMessage     String?
+  jobId            String?
+  emailThreadId    String?
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, feature])
 }

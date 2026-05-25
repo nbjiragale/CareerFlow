@@ -10,6 +10,8 @@ import {
   BookOpen,
   // CAREERFLOW: Phase 1 — Gmail tab icon.
   Mail,
+  // CAREERFLOW: Phase 2 — JD evaluate tab icon.
+  Sparkles,
 } from "lucide-react";
 
 export const APP_CONSTANTS = {
@@ -67,6 +69,12 @@ export const SIDEBAR_LINKS = [
     icon: Mail,
     route: "/dashboard/gmail",
     label: "Gmail",
+  },
+  // CAREERFLOW: Phase 2 — JD evaluation tab.
+  {
+    icon: Sparkles,
+    route: "/dashboard/evaluate",
+    label: "Evaluate JD",
   },
   {
     icon: Zap,

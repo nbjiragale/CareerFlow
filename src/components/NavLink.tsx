@@ -1,11 +1,6 @@
 import React, { ForwardRefExoticComponent, RefAttributes } from "react";
 import Link from "next/link";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { LucideProps } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,24 +17,18 @@ function NavLink({ label, Icon, route, pathname }: NavLinkProps) {
   const isActive =
     route === pathname || pathname.startsWith(`${route}/dashboard`);
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link
-          href={route}
-          className={cn("navlink", {
-            "border-b-2 border-black dark:border-white": isActive,
-          })}
-        >
-          <Icon
-            className={cn("h-5 w-5", {
-              "text-black dark:text-white": isActive,
-            })}
-          />
-          <span className="sr-only">{label}</span>
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent side="right">{label}</TooltipContent>
-    </Tooltip>
+    <Link
+      href={route}
+      className={cn(
+        "flex items-center gap-3 rounded-md border-l-[3px] px-3 py-2 text-sm transition-colors",
+        isActive
+          ? "border-primary bg-primary/5 font-semibold text-primary"
+          : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span>{label}</span>
+    </Link>
   );
 }
 

@@ -6,6 +6,8 @@ import ApiKeySettings from "@/components/settings/ApiKeySettings";
 import DisplaySettings from "@/components/settings/DisplaySettings";
 // CAREERFLOW: Phase 1 — Gmail integration settings panel.
 import IntegrationsSettings from "@/components/settings/IntegrationsSettings";
+// CAREERFLOW: Phase 2 — AI usage panel.
+import UsageSettings from "@/components/settings/UsageSettings";
 import SettingsSidebar, { type SettingsSection } from "@/components/settings/SettingsSidebar";
 
 function Settings() {
@@ -21,6 +23,7 @@ function Settings() {
       section === "ai-provider" ||
       section === "api-keys" ||
       section === "integrations" ||
+      section === "usage" ||
       section === "appearance"
     ) {
       setActiveSection(section);
@@ -41,6 +44,7 @@ function Settings() {
           {activeSection === "ai-provider" && <AiSettings />}
           {activeSection === "api-keys" && <ApiKeySettings />}
           {activeSection === "integrations" && <IntegrationsSettings />}
+          {activeSection === "usage" && <UsageSettings />}
           {activeSection === "appearance" && <DisplaySettings />}
         </div>
       </div>

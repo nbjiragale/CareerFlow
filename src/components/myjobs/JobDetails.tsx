@@ -19,12 +19,23 @@ import { NotesSection } from "./NotesSection";
 import { useState, useMemo, useCallback } from "react";
 import { DownloadFileButton } from "../profile/DownloadFileButton";
 import { MatchDetails } from "../automations/MatchDetails";
-import type { JobMatchResponse } from "@/models/ai.schemas";
+import type { JobMatchResponse, JdEvaluationResponse } from "@/models/ai.schemas";
+// CAREERFLOW: Phase 2 — JD evaluation card on the job detail surface.
+import EvaluationCard from "../evaluate/EvaluationCard";
+import { Loader2 } from "lucide-react";
+import { toast } from "../ui/use-toast";
 
 function JobDetails({ job }: { job: JobResponse }) {
   const [aiSectionOpen, setAiSectionOpen] = useState(false);
   const [currentMatchScore, setCurrentMatchScore] = useState(job.matchScore);
   const [currentMatchData, setCurrentMatchData] = useState(job.matchData);
+  // CAREERFLOW: Phase 2 — local mirror of the eval payload so the card can be
+  // re-rendered after a Re-evaluate click without a full page refresh.
+  const [evaluationJson, setEvaluationJson] = useState(job.evaluationJson ?? null);
+  const [evaluatedAt, setEvaluatedAt] = useState<Date | string | null>(
+    job.evaluatedAt ?? null,
+  );
+  const [evaluating, setEvaluating] = useState(false);
   const router = useRouter();
   const goBack = () => router.back();
 
@@ -36,6 +47,58 @@ function JobDetails({ job }: { job: JobResponse }) {
       return null;
     }
   }, [currentMatchData]);
+
+  const parsedEvaluation = useMemo<JdEvaluationResponse | null>(() => {
+    if (!evaluationJson) return null;
+    try {
+      return JSON.parse(evaluationJson) as JdEvaluationResponse;
+    } catch {
+      return null;
+    }
+  }, [evaluationJson]);
+
+  const runEvaluate = useCallback(async () => {
+    if (!job?.id || !job?.description?.trim()) {
+      toast({
+        variant: "destructive",
+        title: "No description",
+        description: "Add a job description before evaluating.",
+      });
+      return;
+    }
+    setEvaluating(true);
+    try {
+      const res = await fetch("/api/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jdText: job.description,
+          jobId: job.id,
+          archetypeHint: "auto-detect",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({
+          variant: "destructive",
+          title: "Evaluation failed",
+          description: data.error ?? `HTTP ${res.status}`,
+        });
+        return;
+      }
+      setEvaluationJson(JSON.stringify(data.evaluation));
+      setEvaluatedAt(new Date().toISOString());
+      toast({ variant: "success", title: "Evaluation complete" });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Evaluation failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setEvaluating(false);
+    }
+  }, [job?.id, job?.description]);
 
   const handleMatchSaved = useCallback(
     (matchScore: number, matchData: string) => {
@@ -65,19 +128,44 @@ function JobDetails({ job }: { job: JobResponse }) {
         <Button title="Go Back" size="sm" variant="outline" onClick={goBack}>
           <ArrowLeft />
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 gap-1 cursor-pointer"
-          onClick={getAiJobMatch}
-          // disabled={loading}
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            Match with AI
-          </span>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1 cursor-pointer"
+            onClick={runEvaluate}
+            disabled={evaluating}
+          >
+            {evaluating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              {parsedEvaluation ? "Re-evaluate" : "Evaluate JD"}
+            </span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1 cursor-pointer"
+            onClick={getAiJobMatch}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              Match with AI
+            </span>
+          </Button>
+        </div>
       </div>
+      {parsedEvaluation && (
+        <div className="mt-4">
+          <EvaluationCard
+            evaluation={parsedEvaluation}
+            evaluatedAt={evaluatedAt ?? undefined}
+          />
+        </div>
+      )}
       {job?.id && (
         <Card className="col-span-3">
           <CardHeader className="flex-row justify-between relative">

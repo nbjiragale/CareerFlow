@@ -236,3 +236,144 @@ export type SkillsAnalysis = z.infer<typeof SkillsAnalysisSchema>;
 export type ExperienceAnalysis = z.infer<typeof ExperienceAnalysisSchema>;
 export type KeywordsAnalysis = z.infer<typeof KeywordsAnalysisSchema>;
 export type TailoringTip = z.infer<typeof TailoringTipSchema>;
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: Phase 2 — JD Evaluation schema. Ported from career-ops `oferta`
+// mode (SOURCE_SHA pinned in src/lib/ai/prompts/jd-evaluate/system.ts).
+//
+// Six fixed archetypes plus "hybrid" for jobs spanning two; the picker UI
+// also lets the user pass "auto-detect" which is collapsed into one of the
+// six on the way into the prompt (never reaches this schema).
+// ---------------------------------------------------------------------------
+
+export const ARCHETYPES = [
+  "ai-platform-llmops",
+  "agentic",
+  "ai-pm",
+  "solutions-architect",
+  "forward-deployed",
+  "transformation",
+] as const;
+export type Archetype = (typeof ARCHETYPES)[number];
+
+export const ArchetypeSchema = z.enum(ARCHETYPES);
+export const DetectedArchetypeSchema = z.enum([...ARCHETYPES, "hybrid"]);
+
+const JdEvaluationDimensionScoresSchema = z.object({
+  matchWithCv: z
+    .number()
+    .min(1)
+    .max(5)
+    .describe("How closely the candidate's experience matches the role (1-5)."),
+  northStarAlignment: z
+    .number()
+    .min(1)
+    .max(5)
+    .describe("How well the role advances the candidate's stated career direction (1-5)."),
+  comp: z
+    .number()
+    .min(1)
+    .max(5)
+    .describe(
+      "Soft / advisory comp score (1-5). The model uses training-data heuristics only \u2014 the response surface warns the user to verify externally.",
+    ),
+  culturalSignals: z
+    .number()
+    .min(1)
+    .max(5)
+    .describe("Quality of the team / culture / org signals visible in the JD (1-5)."),
+  redFlags: z
+    .number()
+    .min(1)
+    .max(5)
+    .describe(
+      "Severity of red flags identified (1 = many serious red flags, 5 = none). Note inverted polarity vs JobSync's 0-100 conventions.",
+    ),
+});
+
+const JdEvaluationBlocksSchema = z.object({
+  roleSummary: z
+    .string()
+    .describe("3-6 sentence neutral summary of the role: scope, team, key responsibilities."),
+  matchWithCv: z
+    .string()
+    .describe("Concrete paragraph explaining where the candidate's CV maps to JD requirements."),
+  levelStrategy: z
+    .string()
+    .describe("Advice on the leveling / positioning angle (junior/mid/senior framing)."),
+  compDemand: z
+    .string()
+    .describe(
+      "Advisory comp + demand commentary. ALWAYS prefix with 'Advisory \u2014 verify externally:' since this block has no live web access.",
+    ),
+  customizationPlan: z
+    .string()
+    .describe("Specific resume / cover-letter / portfolio tweaks the candidate should make."),
+  interviewPlan: z
+    .string()
+    .describe("3-5 expected interview topics + prep angles given this JD."),
+});
+
+export const JdEvaluationSchema = z.object({
+  detectedArchetype: DetectedArchetypeSchema.describe(
+    "The archetype the JD best matches. May differ from the archetype the user picked.",
+  ),
+  hybridArchetypes: z
+    .array(ArchetypeSchema)
+    .min(2)
+    .max(2)
+    .optional()
+    .describe("When detectedArchetype is 'hybrid', the two archetypes being spanned."),
+  grade: z
+    .enum(["A", "B", "C", "D", "F"])
+    .describe("Letter grade derived from globalScore. 4.5+=A, 4.0+=B, 3.5+=C, 3.0+=D, <3=F."),
+  globalScore: z
+    .number()
+    .min(1)
+    .max(5)
+    .describe("Aggregate 1.0-5.0 score across all dimensions."),
+  dimensionScores: JdEvaluationDimensionScoresSchema,
+  blocks: JdEvaluationBlocksSchema,
+  keywords: z
+    .array(z.string())
+    .min(10)
+    .max(25)
+    .describe("15-20 ATS keywords pulled directly from the JD that should appear in a tailored resume."),
+});
+
+export type JdEvaluationResponse = z.infer<typeof JdEvaluationSchema>;
+export type JdEvaluationDimensionScores = z.infer<
+  typeof JdEvaluationDimensionScoresSchema
+>;
+export type JdEvaluationBlocks = z.infer<typeof JdEvaluationBlocksSchema>;
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: Phase 2 — AI Reply Draft schema. Used by /api/drafts/reply.
+// The model produces ONLY the email body; subject is optional and signature
+// is never included (the user adds their own).
+// ---------------------------------------------------------------------------
+
+export const REPLY_DRAFT_INTENTS = [
+  "reply",
+  "follow-up",
+  "thank-you",
+  "confirm",
+] as const;
+export type ReplyDraftIntent = (typeof REPLY_DRAFT_INTENTS)[number];
+export const ReplyDraftIntentSchema = z.enum(REPLY_DRAFT_INTENTS);
+
+export const AiReplyDraftSchema = z.object({
+  subject: z
+    .string()
+    .optional()
+    .describe("Optional suggested subject line. Leave blank for direct replies on an existing thread."),
+  body: z
+    .string()
+    .min(20)
+    .describe("Plain-text email body. No signature, no model-generated names."),
+  tone: z
+    .string()
+    .describe("Short label for the tone used: e.g. 'professional', 'warm', 'brief'."),
+});
+
+export type AiReplyDraftResponse = z.infer<typeof AiReplyDraftSchema>;

@@ -52,6 +52,10 @@ export interface JobResponse {
   matchData?: string | null;
   tags?: Tag[];
   _count?: { Notes?: number };
+  // CAREERFLOW: Phase 2 — JD evaluation persistence on Job.
+  evaluationGrade?: string | null;
+  evaluationJson?: string | null;
+  evaluatedAt?: Date | string | null;
 }
 
 export interface JobTitle {
