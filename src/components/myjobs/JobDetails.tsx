@@ -13,6 +13,7 @@ import StatusPill from "../design/StatusPill";
 import LogoMark from "../design/LogoMark";
 import { useRouter } from "next/navigation";
 import { AiJobMatchSection } from "../profile/AiJobMatchSection";
+import { TailorResumeButton } from "../profile/TailorResumeButton";
 import { NotesSection } from "./NotesSection";
 import { useState, useMemo, useCallback } from "react";
 import { DownloadFileButton } from "../profile/DownloadFileButton";
@@ -163,6 +164,12 @@ function JobDetails({ job }: { job: JobResponse }) {
           >
             <Sparkles className="h-3.5 w-3.5" /> Match with AI
           </Button>
+          {job?.id && (
+            <TailorResumeButton
+              jobId={job.id}
+              defaultResumeId={job?.Resume?.id ?? null}
+            />
+          )}
           {job?.jobUrl && (
             <a
               href={formatUrl(job.jobUrl)}

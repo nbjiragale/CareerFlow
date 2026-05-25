@@ -8,7 +8,7 @@ import "server-only";
 import db from "@/lib/db";
 import { estimateCost, type UsageTokens } from "./pricing";
 
-export type AiFeature = "evaluate" | "reply-draft";
+export type AiFeature = "evaluate" | "reply-draft" | "resume-tailor";
 export type AiAuditStatus = "success" | "error";
 
 export interface RecordAiUsageArgs {

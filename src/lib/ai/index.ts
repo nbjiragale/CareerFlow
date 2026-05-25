@@ -2,16 +2,20 @@ export { getModel, type ProviderType } from "./providers";
 export {
   ResumeReviewSchema,
   JobMatchSchema,
+  ResumeTailorSchema,
   type ResumeReviewResponse,
   type JobMatchResponse,
+  type ResumeTailorResponse,
 } from "@/models/ai.schemas";
 
 // Prompts
 export {
   RESUME_REVIEW_SYSTEM_PROMPT,
   JOB_MATCH_SYSTEM_PROMPT,
+  RESUME_TAILOR_SYSTEM_PROMPT,
   buildResumeReviewPrompt,
   buildJobMatchPrompt,
+  buildResumeTailorPrompt,
 } from "./prompts";
 
 // Analysis tools

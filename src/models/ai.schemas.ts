@@ -377,3 +377,58 @@ export const AiReplyDraftSchema = z.object({
 });
 
 export type AiReplyDraftResponse = z.infer<typeof AiReplyDraftSchema>;
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: Resume Tailor schema. The LLM receives the candidate's source
+// resume (preprocessed text) plus the JD, and returns a rewritten Summary +
+// per-experience descriptions keyed by the original experienceId. The server
+// action duplicates the Resume row and applies these rewrites — preserving
+// dates, companies, titles, education and certifications verbatim (no
+// fabrication). Decision #5 in IMPLEMENTATION_PLAN.md ("tailor → new resume
+// version") drives the duplicate-don't-overwrite behavior.
+// ---------------------------------------------------------------------------
+
+const TailoredExperienceSchema = z.object({
+  id: z
+    .string()
+    .describe(
+      "MUST exactly match the experienceId of the source experience. Do NOT invent ids.",
+    ),
+  description: z
+    .string()
+    .min(20)
+    .describe(
+      "Rewritten bullet block as HTML <ul><li>…</li></ul>. 3-5 bullets, action-verb-led, JD-aligned. Do not fabricate metrics, employers, dates, or titles that were not in the source.",
+    ),
+});
+
+export const ResumeTailorSchema = z.object({
+  summary: z
+    .string()
+    .min(40)
+    .describe(
+      "Rewritten professional summary (2-4 sentences), HTML <p>…</p>. Emphasize JD-relevant skills and seniority cues. Do not fabricate experience.",
+    ),
+  experiences: z
+    .array(TailoredExperienceSchema)
+    .describe(
+      "One entry per source experience, in the same order. Do not add or drop entries.",
+    ),
+  titleSuffix: z
+    .string()
+    .min(3)
+    .max(80)
+    .describe(
+      "Short suffix to append to the source resume title, e.g. 'tailored for Senior Backend Engineer at Acme'.",
+    ),
+  notes: z
+    .array(z.string())
+    .min(0)
+    .max(5)
+    .describe(
+      "Optional bullet notes explaining what was emphasized or de-emphasized and why.",
+    ),
+});
+
+export type ResumeTailorResponse = z.infer<typeof ResumeTailorSchema>;
+export type TailoredExperience = z.infer<typeof TailoredExperienceSchema>;

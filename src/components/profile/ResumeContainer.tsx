@@ -3,16 +3,21 @@ import { Resume, ResumeSection, SectionType } from "@/models/profile.model";
 import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import AddResumeSection, { AddResumeSectionRef } from "./AddResumeSection";
 import ContactInfoCard from "./ContactInfoCard";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import SummarySectionCard from "./SummarySectionCard";
 import ExperienceCard from "./ExperienceCard";
 import EducationCard from "./EducationCard";
 import CertificationCard from "./CertificationCard";
 import AiResumeReviewSection from "./AiResumeReviewSection";
 import { DownloadFileButton } from "./DownloadFileButton";
+import { Button } from "../ui/button";
+import { Eye, EyeOff } from "lucide-react";
+import ResumePdfPreview from "./pdf/ResumePdfPreview";
+import DownloadResumePdfButton from "./pdf/DownloadResumePdfButton";
 
 function ResumeContainer({ resume }: { resume: Resume }) {
   const resumeSectionRef = useRef<AddResumeSectionRef>(null);
+  const [showPreview, setShowPreview] = useState(true);
   const { title, ContactInfo, ResumeSections } = resume ?? {};
   const summarySection = ResumeSections?.find(
     (section) => section.sectionType === SectionType.SUMMARY,
@@ -75,7 +80,22 @@ function ResumeContainer({ resume }: { resume: Resume }) {
                 )
               : title}
           </CardDescription>
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setShowPreview((v) => !v)}
+            >
+              {showPreview ? (
+                <EyeOff className="h-3.5 w-3.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
+              {showPreview ? "Hide preview" : "Show preview"}
+            </Button>
+            <DownloadResumePdfButton resume={resume} />
             <AddResumeSection resume={resume} ref={resumeSectionRef} />
             <AiResumeReviewSection resume={resume} />
           </div>
@@ -111,6 +131,7 @@ function ResumeContainer({ resume }: { resume: Resume }) {
           openDialogForEdit={openCertificationDialogForEdit}
         />
       )}
+      {showPreview && <ResumePdfPreview resume={resume} />}
     </>
   );
 }

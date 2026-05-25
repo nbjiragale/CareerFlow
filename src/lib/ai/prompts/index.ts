@@ -18,3 +18,10 @@ export {
   JOB_MATCH_SYSTEM_PROMPT,
   buildJobMatchPrompt,
 } from "./job-match";
+
+// Resume Tailor exports
+export {
+  RESUME_TAILOR_SYSTEM_PROMPT,
+  buildResumeTailorPrompt,
+  type TailorPromptInput,
+} from "./resume-tailor";
