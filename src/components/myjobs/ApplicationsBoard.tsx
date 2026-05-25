@@ -29,8 +29,11 @@ interface BoardColumn {
   color: string;
 }
 
-// Maps the existing JobStatus values onto the design's columns. `draft` falls
-// into Wishlist until the wishlist/screening statuses are seeded (PR F).
+// The board's six pipeline columns map 1:1 to the seeded JobStatus values
+// (wishlist/applied/screening/interview/offer/rejected). Legacy statuses, which
+// have no column of their own, fold into the nearest stage so no job disappears
+// from the board: `draft` (pre-application) -> Wishlist, `expired`/`archived` ->
+// Rejected. See docs/redesign-plan.md §5.
 const COLUMNS: BoardColumn[] = [
   { key: "wishlist", label: "Wishlist", statuses: ["wishlist", "draft"], color: "var(--st-wishlist)" },
   { key: "applied", label: "Applied", statuses: ["applied"], color: "var(--st-applied)" },

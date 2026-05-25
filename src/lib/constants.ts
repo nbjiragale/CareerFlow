@@ -61,6 +61,14 @@ export const JOB_STATUSES = [
   { label: "Rejected", value: "rejected" },
   { label: "Expired", value: "expired" },
   { label: "Archived", value: "archived" },
+  // CAREERFLOW: redesign (PR F) — the two pipeline stages the Applications board
+  // adds on top of the legacy set. Board columns map 1:1 to these values; the
+  // legacy draft/expired/archived statuses remain selectable. Appended (rather
+  // than reordered) so the existing not-applied/applied defaults — AddJob keys
+  // off index 0/1 — stay put. New rows are seeded for existing DBs via the
+  // careerflow_redesign_status_seed migration.
+  { label: "Wishlist", value: "wishlist" },
+  { label: "Screening", value: "screening" },
 ] as const;
 
 export const SIDEBAR_LINKS = [
