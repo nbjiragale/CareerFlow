@@ -96,7 +96,7 @@ function GmailTabsContainer() {
   if (!status.connected) {
     return (
       <div className="flex flex-col items-start gap-4 rounded-lg border bg-card p-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Gmail</h2>
+        <h1 className="text-2xl font-semibold tracking-tight">Connect Gmail</h1>
         <p className="text-sm text-muted-foreground max-w-2xl">
           Connect your Gmail account to start tracking job application emails
           automatically. CareerFlow classifies messages into the labels
@@ -119,8 +119,8 @@ function GmailTabsContainer() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Gmail</h2>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Connected as <span className="font-medium">{status.email}</span>{" "}
             · Classifier:{" "}
             <span className="font-medium capitalize">{status.classifier}</span>{" "}

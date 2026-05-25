@@ -6,7 +6,7 @@ import { Metadata } from "next";
 import GmailTabsContainer from "@/components/gmail/GmailTabsContainer";
 
 export const metadata: Metadata = {
-  title: "Gmail | CareerFlow",
+  title: "Inbox | CareerFlow",
 };
 
 function GmailPage() {

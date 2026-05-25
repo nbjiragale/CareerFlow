@@ -7,9 +7,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { Loader2, Sparkles } from "lucide-react";
 
-import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
+import { cn } from "@/lib/utils";
 // CAREERFLOW: Phase 2 — AI reply-draft drawer.
 import DraftReplyDrawer from "./DraftReplyDrawer";
 
@@ -41,13 +41,15 @@ const LABEL_OPTIONS = [
   "NotJobRelated",
 ] as const;
 
-const LABEL_COLORS: Record<string, string> = {
-  Applied: "bg-blue-500/20 text-blue-700 border-blue-500/30",
-  Interview: "bg-purple-500/20 text-purple-700 border-purple-500/30",
-  NextPhase: "bg-indigo-500/20 text-indigo-700 border-indigo-500/30",
-  Offer: "bg-emerald-500/20 text-emerald-700 border-emerald-500/30",
-  Rejected: "bg-red-500/20 text-red-700 border-red-500/30",
-  NotJobRelated: "bg-muted text-muted-foreground",
+// CAREERFLOW: redesign (PR D) — map classifier labels to the design-system
+// status-pill tints. NotJobRelated stays neutral (plain pill).
+const LABEL_PILL: Record<string, string> = {
+  Applied: "pill-applied",
+  Interview: "pill-interview",
+  NextPhase: "pill-screening",
+  Offer: "pill-offer",
+  Rejected: "pill-rejected",
+  NotJobRelated: "",
 };
 
 interface GmailThreadRowProps {
@@ -107,19 +109,15 @@ function GmailThreadRow({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant="outline"
-              className={LABEL_COLORS[thread.label] ?? LABEL_COLORS.NotJobRelated}
-            >
+            <span className={cn("pill", LABEL_PILL[thread.label])}>
+              {LABEL_PILL[thread.label] ? <span className="pill-dot" /> : null}
               {thread.label}
-            </Badge>
+            </span>
             <span className="text-xs tabular-nums text-muted-foreground">
               confidence {(thread.confidence * 100).toFixed(0)}%
             </span>
             {thread.needsReview && (
-              <Badge variant="outline" className="border-amber-500/40 text-amber-700">
-                Needs review
-              </Badge>
+              <span className="pill pill-interview">Needs review</span>
             )}
           </div>
           <div className="font-medium truncate" title={thread.subject}>
