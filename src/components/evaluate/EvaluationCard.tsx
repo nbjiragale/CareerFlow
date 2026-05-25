@@ -7,7 +7,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { Badge } from "../ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { cn } from "@/lib/utils";
+import GradeChip from "../design/GradeChip";
 import type { JdEvaluationResponse } from "@/models/ai.schemas";
 
 interface EvaluationCardProps {
@@ -17,13 +17,14 @@ interface EvaluationCardProps {
   model?: string;
 }
 
-const GRADE_COLORS: Record<JdEvaluationResponse["grade"], string> = {
-  A: "bg-emerald-600 text-white",
-  B: "bg-emerald-500 text-white",
-  C: "bg-amber-500 text-white",
-  D: "bg-orange-500 text-white",
-  F: "bg-red-600 text-white",
-};
+// CAREERFLOW: redesign (PR D) — dimension fill color keyed to the 1–5 score.
+function dimensionColor(score: number): string {
+  if (score >= 4.5) return "var(--grade-a)";
+  if (score >= 4) return "var(--grade-b)";
+  if (score >= 3.5) return "var(--grade-c)";
+  if (score >= 3) return "var(--grade-d)";
+  return "var(--grade-f)";
+}
 
 const ARCHETYPE_LABELS: Record<string, string> = {
   "ai-platform-llmops": "AI Platform / LLMOps",
@@ -43,10 +44,10 @@ function DimensionBar({ label, score }: { label: string; score: number }) {
         <span className="text-muted-foreground">{label}</span>
         <span className="tabular-nums font-medium">{score.toFixed(1)}</span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-muted">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className="h-1.5 rounded-full bg-primary"
-          style={{ width: `${pct}%` }}
+          className="h-1.5 rounded-full"
+          style={{ width: `${pct}%`, background: dimensionColor(score) }}
         />
       </div>
     </div>
@@ -107,14 +108,10 @@ export default function EvaluationCard({
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-lg text-2xl font-bold",
-                GRADE_COLORS[evaluation.grade],
-              )}
-            >
-              {evaluation.grade}
-            </div>
+            <GradeChip
+              grade={evaluation.grade}
+              className="h-12 w-12 rounded-lg text-2xl"
+            />
             <div>
               <CardTitle>JD Evaluation</CardTitle>
               <div className="mt-1 text-sm text-muted-foreground">
