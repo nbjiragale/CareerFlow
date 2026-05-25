@@ -1,18 +1,22 @@
 import { Metadata } from "next";
 
-import { getJobSourceList, getStatusList } from "@/actions/job.actions";
-import JobsContainer from "@/components/myjobs/JobsContainer";
+import {
+  getApplicationsBoard,
+  getJobSourceList,
+  getStatusList,
+} from "@/actions/job.actions";
+import ApplicationsView from "@/components/myjobs/ApplicationsView";
 import { getAllCompanies } from "@/actions/company.actions";
 import { getAllJobTitles } from "@/actions/jobtitle.actions";
 import { getAllJobLocations } from "@/actions/jobLocation.actions";
 import { getAllTags } from "@/actions/tag.actions";
 
 export const metadata: Metadata = {
-  title: "My Jobs | JobSync",
+  title: "Applications",
 };
 
 async function MyJobs() {
-  const [statuses, companies, titles, locations, sources, tags] =
+  const [statuses, companies, titles, locations, sources, tags, board] =
     await Promise.all([
       getStatusList(),
       getAllCompanies(),
@@ -20,18 +24,18 @@ async function MyJobs() {
       getAllJobLocations(),
       getJobSourceList(),
       getAllTags(),
+      getApplicationsBoard(),
     ]);
   return (
-    <div className="col-span-3">
-      <JobsContainer
-        companies={companies}
-        titles={titles}
-        locations={locations}
-        sources={sources}
-        statuses={statuses}
-        tags={tags ?? []}
-      />
-    </div>
+    <ApplicationsView
+      boardJobs={board?.data ?? []}
+      companies={companies}
+      titles={titles}
+      locations={locations}
+      sources={sources}
+      statuses={statuses}
+      tags={tags ?? []}
+    />
   );
 }
 
