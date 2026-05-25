@@ -501,3 +501,15 @@ export const getResponseRateForUser = async (
     return { windowDays, appliedCount, respondedCount, rate };
   });
 };
+
+// CAREERFLOW: redesign — count of applications still in an active stage
+// (anything not rejected/expired/archived). Powers the dashboard "Active" tile.
+const INACTIVE_STAGES = ["rejected", "expired", "archived"];
+
+export const getActiveApplicationsCount = async (
+  userId: string,
+): Promise<number> => {
+  return prisma.job.count({
+    where: { userId, Status: { value: { notIn: INACTIVE_STAGES } } },
+  });
+};

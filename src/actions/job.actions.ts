@@ -18,6 +18,47 @@ export const getStatusList = async (): Promise<any | undefined> => {
   }
 };
 
+// CAREERFLOW: redesign — lightweight job cards for the Applications board,
+// grouped client-side by status. Capped; the table view handles large sets.
+export const getApplicationsBoard = async (): Promise<any | undefined> => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+    const jobs = await prisma.job.findMany({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        matchScore: true,
+        createdAt: true,
+        evaluationGrade: true,
+        JobTitle: { select: { label: true } },
+        Company: { select: { label: true } },
+        Location: { select: { label: true } },
+        Status: { select: { value: true, label: true } },
+        JobSource: { select: { label: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+    const data = jobs.map((j) => ({
+      id: j.id,
+      title: j.JobTitle?.label ?? "Untitled role",
+      company: j.Company?.label ?? "",
+      location: j.Location?.label ?? null,
+      status: j.Status?.value ?? "draft",
+      matchScore: j.matchScore ?? null,
+      grade: j.evaluationGrade ?? null,
+      source: j.JobSource?.label ?? null,
+      createdAt: j.createdAt,
+    }));
+    return { success: true, data };
+  } catch (error) {
+    return handleError(error, "Failed to load applications board.");
+  }
+};
+
 export const getJobSourceList = async (): Promise<any | undefined> => {
   try {
     const user = await getCurrentUser();

@@ -20,9 +20,13 @@ const config = {
   	},
   	extend: {
   		fontFamily: {
-  			inter: [
-  				'var(--font-inter)',
+  			sans: [
+  				'var(--font-geist-sans)',
                     ...fontFamily.sans
+                ],
+  			mono: [
+  				'var(--font-geist-mono)',
+                    ...fontFamily.mono
                 ]
   		},
   		colors: {
@@ -31,6 +35,26 @@ const config = {
   			ring: 'hsl(var(--ring))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+  			// CAREERFLOW: redesign — brand accent + status + grade colors.
+  			brand: {
+  				DEFAULT: 'var(--brand)',
+  				foreground: 'var(--brand-foreground)'
+  			},
+  			status: {
+  				applied: 'var(--st-applied)',
+  				interview: 'var(--st-interview)',
+  				offer: 'var(--st-offer)',
+  				rejected: 'var(--st-rejected)',
+  				wishlist: 'var(--st-wishlist)',
+  				screening: 'var(--st-screening)'
+  			},
+  			grade: {
+  				a: 'var(--grade-a)',
+  				b: 'var(--grade-b)',
+  				c: 'var(--grade-c)',
+  				d: 'var(--grade-d)',
+  				f: 'var(--grade-f)'
+  			},
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))'

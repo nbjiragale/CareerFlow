@@ -1,18 +1,16 @@
 "use client";
 import { format } from "date-fns";
 import { Badge } from "../ui/badge";
-import { cn, formatUrl } from "@/lib/utils";
+import { formatUrl } from "@/lib/utils";
 import { JobResponse } from "@/models/job.model";
 import { TipTapContentViewer } from "../TipTapContentViewer";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
+import { Card, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
+// CAREERFLOW: redesign — detail header primitives.
+import GradeChip from "../design/GradeChip";
+import StatusPill from "../design/StatusPill";
+import LogoMark from "../design/LogoMark";
 import { useRouter } from "next/navigation";
 import { AiJobMatchSection } from "../profile/AiJobMatchSection";
 import { NotesSection } from "./NotesSection";
@@ -124,17 +122,29 @@ function JobDetails({ job }: { job: JobResponse }) {
         return "Unknown";
     }
   };
+  const scoreOutOf100 =
+    parsedEvaluation && typeof parsedEvaluation.globalScore === "number"
+      ? Math.round(parsedEvaluation.globalScore * 20)
+      : null;
+
   return (
-    <>
-      <div className="flex justify-between">
-        <Button title="Go Back" size="sm" variant="outline" onClick={goBack}>
-          <ArrowLeft />
+    <div className="col-span-3 mx-auto flex w-full max-w-[960px] flex-col gap-4">
+      {/* action bar */}
+      <div className="flex items-center justify-between">
+        <Button
+          title="All applications"
+          size="sm"
+          variant="ghost"
+          className="gap-1.5 px-2 text-muted-foreground"
+          onClick={goBack}
+        >
+          <ArrowLeft className="h-4 w-4" /> All applications
         </Button>
         <div className="flex gap-2">
           <Button
             size="sm"
             variant="outline"
-            className="h-8 gap-1 cursor-pointer"
+            className="h-8 gap-1.5"
             onClick={runEvaluate}
             disabled={evaluating}
           >
@@ -143,119 +153,152 @@ function JobDetails({ job }: { job: JobResponse }) {
             ) : (
               <Sparkles className="h-3.5 w-3.5" />
             )}
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              {parsedEvaluation ? "Re-evaluate" : "Evaluate JD"}
-            </span>
+            {parsedEvaluation ? "Re-evaluate" : "Evaluate JD"}
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="h-8 gap-1 cursor-pointer"
+            className="h-8 gap-1.5"
             onClick={getAiJobMatch}
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Match with AI
-            </span>
+            <Sparkles className="h-3.5 w-3.5" /> Match with AI
           </Button>
+          {job?.jobUrl && (
+            <a
+              href={formatUrl(job.jobUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-xs font-medium transition-colors hover:bg-accent"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> Open JD
+            </a>
+          )}
         </div>
       </div>
-      {parsedEvaluation && (
-        <div className="mt-4">
-          <EvaluationCard
-            evaluation={parsedEvaluation}
-            evaluatedAt={evaluatedAt ?? undefined}
-          />
-        </div>
-      )}
-      {job?.id && (
-        <Card className="col-span-3">
-          <CardHeader className="flex-row justify-between relative">
+
+      {/* stat trio + company header */}
+      <Card className="flex flex-col gap-4 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <LogoMark name={job?.Company?.label || job?.JobTitle?.label || "?"} size="lg" />
             <div>
-              {job?.Company?.label}
-              <CardTitle>{job?.JobTitle?.label}</CardTitle>
-              <CardDescription>
-                {job?.Location?.label} - {getJobType(job?.jobType)}
-              </CardDescription>
-            </div>
-            <div>
-              {job?.Resume && job?.Resume?.File && job.Resume?.File?.filePath
-                ? DownloadFileButton(
-                    job?.Resume?.File?.filePath,
-                    job?.Resume?.title,
-                    job?.Resume?.File?.fileName,
-                  )
-                : null}
-            </div>
-          </CardHeader>
-          <h3 className="ml-4">
-            {new Date() > job.dueDate && job.Status?.value === "draft" ? (
-              <Badge className="bg-red-500">Expired</Badge>
-            ) : (
-              <Badge
-                className={cn(
-                  "w-[70px] justify-center",
-                  job.Status?.value === "applied" && "bg-cyan-500",
-                  job.Status?.value === "interview" && "bg-green-500",
+              <div className="text-sm text-muted-foreground">
+                {[job?.Company?.label, job?.Location?.label, job?.salaryRange]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </div>
+              <h1 className="mt-0.5 text-2xl font-semibold tracking-tight">
+                {job?.JobTitle?.label}
+              </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {job?.Status && (
+                  <StatusPill
+                    status={job.Status.value}
+                    label={job.Status.label}
+                  />
                 )}
-              >
-                {job.Status?.label}
-              </Badge>
-            )}
-            <span className="ml-2">
-              {job?.appliedDate ? format(new Date(job?.appliedDate), "PP") : ""}
-            </span>
-          </h3>
-          {job.tags && job.tags.length > 0 && (
-            <div className="my-3 ml-4 flex flex-wrap gap-1">
-              {job.tags.map((tag) => (
-                <Badge key={tag.id} variant="secondary">
-                  {tag.label}
-                </Badge>
-              ))}
+                {job.tags?.map((tag) => (
+                  <Badge key={tag.id} variant="secondary">
+                    {tag.label}
+                  </Badge>
+                ))}
+              </div>
+              {job?.appliedDate && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Applied {format(new Date(job.appliedDate), "PP")} ·{" "}
+                  {getJobType(job?.jobType)}
+                </p>
+              )}
             </div>
-          )}
-          {job.jobUrl && (
-            <div className="my-3 ml-4">
-              <span className="font-semibold mr-2">Job URL:</span>
-              <a
-                href={formatUrl(job.jobUrl)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {job.jobUrl}
-              </a>
-            </div>
-          )}
-          <div className="my-4 ml-4">
-            <TipTapContentViewer content={job?.description} />
           </div>
-          <NotesSection jobId={job.id} />
-          {parsedMatchData && (
-            <div className="mx-4 mb-4">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                AI Match Analysis
-                {currentMatchScore && (
-                  <Badge variant="default">{currentMatchScore}% Match</Badge>
-                )}
-              </h4>
-              <MatchDetails matchData={parsedMatchData} />
+
+          <div className="flex items-stretch gap-2">
+            <div className="flex min-w-[84px] flex-col items-center gap-1 rounded-lg border border-border bg-secondary p-3">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                AI Grade
+              </span>
+              {parsedEvaluation?.grade ? (
+                <GradeChip grade={parsedEvaluation.grade} />
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
             </div>
-          )}
-          <CardFooter></CardFooter>
+            <div className="flex min-w-[84px] flex-col items-center gap-1 rounded-lg border border-border bg-secondary p-3">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                Score
+              </span>
+              <span className="text-xl font-semibold tabular-nums">
+                {scoreOutOf100 != null ? scoreOutOf100 : "—"}
+                <span className="text-xs text-muted-foreground">/100</span>
+              </span>
+            </div>
+            <div className="flex min-w-[84px] flex-col items-center gap-1 rounded-lg border border-border bg-secondary p-3">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                Resume
+              </span>
+              <span className="text-xl font-semibold tabular-nums">
+                {currentMatchScore != null ? `${currentMatchScore}%` : "—"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {job?.Resume?.File?.filePath
+          ? DownloadFileButton(
+              job.Resume.File.filePath,
+              job.Resume.title,
+              job.Resume.File.fileName,
+            )
+          : null}
+      </Card>
+
+      {/* AI evaluation */}
+      {parsedEvaluation && (
+        <EvaluationCard
+          evaluation={parsedEvaluation}
+          evaluatedAt={evaluatedAt ?? undefined}
+        />
+      )}
+
+      {/* timeline */}
+      {job?.id && <JobTimeline jobId={job.id} />}
+
+      {/* resume match */}
+      {parsedMatchData && (
+        <Card className="p-4">
+          <h4 className="mb-2 flex items-center gap-2 font-medium">
+            <Sparkles className="h-4 w-4" />
+            AI Match Analysis
+            {currentMatchScore && (
+              <Badge variant="default">{currentMatchScore}% Match</Badge>
+            )}
+          </h4>
+          <MatchDetails matchData={parsedMatchData} />
         </Card>
       )}
-      {job?.id && <JobTimeline jobId={job.id} />}
-      {
-        <AiJobMatchSection
-          jobId={job?.id}
-          aISectionOpen={aiSectionOpen}
-          triggerChange={setAiSectionOpen}
-          onMatchSaved={handleMatchSaved}
-        />
-      }
-    </>
+
+      {/* job description */}
+      <Card className="p-4">
+        <h4 className="mb-2 font-medium">Job description</h4>
+        <TipTapContentViewer content={job?.description} />
+      </Card>
+
+      {/* notes */}
+      {job?.id && (
+        <Card className="p-4">
+          <NotesSection jobId={job.id} />
+        </Card>
+      )}
+
+      <CardFooter className="p-0" />
+
+      <AiJobMatchSection
+        jobId={job?.id}
+        aISectionOpen={aiSectionOpen}
+        triggerChange={setAiSectionOpen}
+        onMatchSaved={handleMatchSaved}
+      />
+    </div>
   );
 }
 
