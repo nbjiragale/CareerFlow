@@ -10,6 +10,9 @@ import IntegrationsSettings from "@/components/settings/IntegrationsSettings";
 import UsageSettings from "@/components/settings/UsageSettings";
 // CAREERFLOW: Phase 3 — reminder notification settings panel.
 import NotificationsSettings from "@/components/settings/NotificationsSettings";
+// CAREERFLOW: Phase 3 (PR #9) — data export + account deletion panels.
+import DataExportSettings from "@/components/settings/DataExportSettings";
+import DeleteAccountSettings from "@/components/settings/DeleteAccountSettings";
 import SettingsSidebar, { type SettingsSection } from "@/components/settings/SettingsSidebar";
 
 function Settings() {
@@ -27,6 +30,8 @@ function Settings() {
       section === "integrations" ||
       section === "usage" ||
       section === "notifications" ||
+      section === "data" ||
+      section === "account" ||
       section === "appearance"
     ) {
       setActiveSection(section);
@@ -49,6 +54,8 @@ function Settings() {
           {activeSection === "integrations" && <IntegrationsSettings />}
           {activeSection === "usage" && <UsageSettings />}
           {activeSection === "notifications" && <NotificationsSettings />}
+          {activeSection === "data" && <DataExportSettings />}
+          {activeSection === "account" && <DeleteAccountSettings />}
           {activeSection === "appearance" && <DisplaySettings />}
         </div>
       </div>

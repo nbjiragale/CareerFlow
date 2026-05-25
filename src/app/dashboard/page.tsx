@@ -1,10 +1,12 @@
 import {
   getActivityCalendarData,
   getActivityDataForPeriod,
+  getFunnelForUser,
   getJobsActivityForPeriod,
   getJobsAppliedForPeriod,
   getRecentActivities,
   getRecentJobs,
+  getResponseRateForUser,
   getTopActivityTypesByDuration,
 } from "@/actions/dashboard.actions";
 import ActivityCalendar from "@/components/dashboard/ActivityCalendar";
@@ -13,6 +15,12 @@ import NumberCardToggle from "@/components/dashboard/NumberCardToggle";
 import RecentCardToggle from "@/components/dashboard/RecentCardToggle";
 import TopActivitiesCard from "@/components/dashboard/TopActivitiesCard";
 import WeeklyBarChartToggle from "@/components/dashboard/WeeklyBarChartToggle";
+// CAREERFLOW: Phase 3 (PR #9) — analytics tiles.
+import ResponseRateTile from "@/components/dashboard/ResponseRateTile";
+import FunnelTile from "@/components/dashboard/FunnelTile";
+import AiSpendTile from "@/components/dashboard/AiSpendTile";
+import { getUsageSummary } from "@/lib/ai/usage";
+import { getCurrentUser } from "@/utils/user.utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Metadata } from "next";
@@ -22,6 +30,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Dashboard() {
+  // CAREERFLOW: Phase 3 (PR #9) — resolve the user once to feed the analytics tiles.
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.id ?? "";
+
   const [
     { count: jobsAppliedLast7Days, trend: trendFor7Days },
     { count: jobsAppliedLast30Days, trend: trendFor30Days },
@@ -32,6 +44,9 @@ export default async function Dashboard() {
     activityCalendarData,
     topActivities7Days,
     topActivities30Days,
+    funnel,
+    responseRate,
+    usage,
   ] = await Promise.all([
     getJobsAppliedForPeriod(7),
     getJobsAppliedForPeriod(30),
@@ -42,6 +57,9 @@ export default async function Dashboard() {
     getActivityCalendarData(),
     getTopActivityTypesByDuration(7),
     getTopActivityTypesByDuration(30),
+    getFunnelForUser(userId),
+    getResponseRateForUser(userId),
+    getUsageSummary(userId, 30),
   ]);
   const activityCalendarDataKeys = Object.keys(activityCalendarData);
   const activitiesDataKeys = (data: string[]) =>
@@ -95,6 +113,12 @@ export default async function Dashboard() {
             },
           ]}
         />
+        {/* CAREERFLOW: Phase 3 (PR #9) — analytics tiles. */}
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ResponseRateTile data={responseRate} />
+          <FunnelTile data={funnel} />
+          <AiSpendTile totalUsd={usage.totals.costUsd} calls={usage.totals.calls} />
+        </div>
       </div>
       <div>
         <RecentCardToggle jobs={recentJobs} activities={recentActivities} />
