@@ -158,7 +158,7 @@ export default function UsageSettings() {
         <h3 className="text-lg font-medium">Usage (last {summary.rangeDays} days)</h3>
         <p className="text-sm text-muted-foreground">
           AI calls recorded by CareerFlow. Cost figures are estimates based on
-          a static pricing table — verify against your provider's dashboard.
+          a static pricing table — verify against your provider&apos;s dashboard.
         </p>
       </div>
 
