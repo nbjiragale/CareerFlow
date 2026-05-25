@@ -10,8 +10,6 @@
 
 import "server-only";
 
-import { generateObject } from "ai";
-
 import db from "@/lib/db";
 import { getModel, type ProviderType } from "@/lib/ai/providers";
 import {
@@ -25,6 +23,7 @@ import {
 } from "@/models/ai.schemas";
 import { GmailNotConnectedError, getAuthorizedGmail } from "@/lib/gmail/client";
 import { extractEmailBody } from "@/lib/gmail/body";
+import { generateStructuredObject } from "./structured";
 import { recordAiUsage } from "./audit";
 
 export interface GenerateReplyDraftArgs {
@@ -142,7 +141,7 @@ export async function generateReplyDraft(
   try {
     const aiModel = await getModel(provider, model, userId);
 
-    const { object: draft, usage } = await generateObject({
+    const { object: draft, usage } = await generateStructuredObject({
       model: aiModel,
       schema: AiReplyDraftSchema,
       system: REPLY_DRAFT_SYSTEM_PROMPT,

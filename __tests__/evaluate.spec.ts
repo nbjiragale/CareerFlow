@@ -20,24 +20,45 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-vi.mock("ai", () => ({
-  generateObject: vi.fn(),
-  generateText: vi.fn(),
-  // Mirror the real export so evaluate.ts can branch on it. isInstance must
-  // return false for unrelated errors so they propagate unchanged.
-  NoObjectGeneratedError: class NoObjectGeneratedError extends Error {
+vi.mock("ai", () => {
+  // Mirror the real exports so the structured-output helper can branch on
+  // them. isInstance must return false for unrelated errors so they
+  // propagate unchanged.
+  class NoObjectGeneratedError extends Error {
     static isInstance(err: unknown): err is Error {
       return err instanceof NoObjectGeneratedError;
     }
-  },
-}));
+  }
+  class APICallError extends Error {
+    statusCode?: number;
+    constructor(message: string, statusCode?: number) {
+      super(message);
+      this.statusCode = statusCode;
+      this.name = "AI_APICallError";
+    }
+    static isInstance(err: unknown): err is APICallError {
+      return err instanceof APICallError;
+    }
+  }
+  return {
+    generateObject: vi.fn(),
+    generateText: vi.fn(),
+    NoObjectGeneratedError,
+    APICallError,
+  };
+});
 
 vi.mock("@/lib/ai/providers", () => ({
   getModel: vi.fn(),
 }));
 
 import db from "@/lib/db";
-import { generateObject, generateText, NoObjectGeneratedError } from "ai";
+import {
+  generateObject,
+  generateText,
+  NoObjectGeneratedError,
+  APICallError,
+} from "ai";
 import { getModel } from "@/lib/ai/providers";
 import { runJdEvaluation } from "@/lib/ai/evaluate";
 import {
@@ -284,7 +305,50 @@ describe("runJdEvaluation", () => {
 
     await expect(
       runJdEvaluation({ userId: "u1", jdText: "JD text" }),
-    ).rejects.toThrow(/did not return a valid evaluation/);
+    ).rejects.toThrow(/did not return a valid structured response/);
     expect(createAudit.mock.calls[0][0].data.status).toBe("error");
+  });
+
+  // CAREERFLOW: providers like Gemini reject our JSON Schema (minItems /
+  // maxItems / minimum / maximum) with HTTP 400 before any text is
+  // generated. APICallError statusCode=400 should trigger the same
+  // generateText fallback as NoObjectGeneratedError.
+  it("falls back to generateText on APICallError statusCode=400", async () => {
+    findSettings.mockResolvedValue(
+      settingsRow({ ai: { provider: "gemini", model: "gemini-1.5-flash" } }),
+    );
+    generateObjectMock.mockRejectedValue(
+      new (APICallError as any)("Schema constraint not supported", 400),
+    );
+    generateTextMock.mockResolvedValue({
+      text: JSON.stringify(evaluationObject(4.0)),
+      usage: { inputTokens: 12, outputTokens: 24 },
+    });
+
+    const result = await runJdEvaluation({ userId: "u1", jdText: "JD text" });
+
+    expect(generateObjectMock).toHaveBeenCalledTimes(1);
+    expect(generateTextMock).toHaveBeenCalledTimes(1);
+    expect(result.evaluation.grade).toBe("B"); // normalized from 4.0
+    expect(createAudit.mock.calls[0][0].data.status).toBe("success");
+  });
+
+  // 401 / 429 / 5xx are real auth/quota/transport problems — the helper must
+  // NOT mask them with a retry. The error should bubble up unchanged so the
+  // user sees the actual provider error in Settings -> Usage.
+  it("does NOT fall back on APICallError statusCode=401 (auth)", async () => {
+    findSettings.mockResolvedValue(settingsRow());
+    generateObjectMock.mockRejectedValue(
+      new (APICallError as any)("Incorrect API key", 401),
+    );
+
+    await expect(
+      runJdEvaluation({ userId: "u1", jdText: "JD text" }),
+    ).rejects.toThrow("Incorrect API key");
+    expect(generateTextMock).not.toHaveBeenCalled();
+    expect(createAudit.mock.calls[0][0].data.status).toBe("error");
+    expect(createAudit.mock.calls[0][0].data.errorMessage).toBe(
+      "Incorrect API key",
+    );
   });
 });
