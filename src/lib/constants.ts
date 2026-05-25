@@ -29,6 +29,12 @@ export const SCHEDULER_CONSTANTS = {
   // Gmail sync cadence. Automations still gate on nextRunAt, so a more
   // frequent tick is harmless for the JobSync side.
   CRON_EXPRESSION: "*/15 * * * *",
+  // CAREERFLOW: Phase 3 — reminders need finer granularity than the 15-min
+  // batch tick ("remind me in 1 hour"), so they run on their own 1-min cron.
+  REMINDER_CRON_EXPRESSION: "* * * * *",
+  // CAREERFLOW: Phase 3 — cap dispatch per tick so a backlog of overdue tasks
+  // can't thrash the single-process server; spillover rolls to the next tick.
+  MAX_REMINDERS_PER_TICK: 50,
 } as const;
 
 export const JOB_SOURCES = [

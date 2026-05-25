@@ -4,8 +4,12 @@ import db from "@/lib/db";
 import { runAutomation } from "@/lib/scraper";
 // CAREERFLOW: Phase 1 — Gmail sync scheduled alongside JobSync's automations.
 import { runDueGmailSyncs } from "@/lib/gmail/scheduler";
+// CAREERFLOW: Phase 3 — task reminder dispatcher (separate 1-min cron).
+import { runDueReminders } from "@/lib/notifications/dispatcher";
 
 let scheduledTask: ScheduledTask | null = null;
+// CAREERFLOW: Phase 3 — reminders run on their own finer-grained cron.
+let reminderTask: ScheduledTask | null = null;
 
 async function runDueAutomations() {
   const now = new Date();
@@ -104,6 +108,27 @@ export function startScheduler() {
     },
   );
 
+  // CAREERFLOW: Phase 3 — start the reminder cron on its own schedule.
+  const reminderCron = SCHEDULER_CONSTANTS.REMINDER_CRON_EXPRESSION;
+  if (!cron.validate(reminderCron)) {
+    console.error(`[Scheduler] Invalid reminder cron expression: ${reminderCron}`);
+  } else {
+    console.log(`[Scheduler] Starting reminder cron with schedule: ${reminderCron}`);
+    reminderTask = cron.schedule(
+      reminderCron,
+      async () => {
+        try {
+          await runDueReminders();
+        } catch (error) {
+          console.error("[Scheduler] Reminder tick failed:", error);
+        }
+      },
+      {
+        timezone: process.env.TZ || "UTC",
+      },
+    );
+  }
+
   console.log("[Scheduler] Started successfully");
 }
 
@@ -112,6 +137,12 @@ export function stopScheduler() {
     scheduledTask.stop();
     scheduledTask = null;
     console.log("[Scheduler] Stopped");
+  }
+  // CAREERFLOW: Phase 3 — also stop the reminder cron.
+  if (reminderTask) {
+    reminderTask.stop();
+    reminderTask = null;
+    console.log("[Scheduler] Reminder cron stopped");
   }
 }
 

@@ -18,6 +18,10 @@ export interface Task {
   priority: number;
   percentComplete: number;
   dueDate?: Date | null;
+  // CAREERFLOW: Phase 3 — reminder fields.
+  remindAt?: Date | null;
+  remindedAt?: Date | null;
+  remindChannels?: string | null; // JSON array of "browser" | "email"
   activityTypeId?: string | null;
   activityType?: ActivityType | null;
   activity?: { id: string } | null;

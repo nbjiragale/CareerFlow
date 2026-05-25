@@ -28,4 +28,12 @@ export const AddTaskFormSchema = z.object({
       { message: "Due date cannot be in the past." }
     ),
   activityTypeId: z.string().optional().nullable(),
+  // CAREERFLOW: Phase 3 — reminder scheduling. remindAt is independent of
+  // dueDate (it's when to fire the notification, which may be earlier). No
+  // past-date refine: a remindAt in the past simply fires on the next tick.
+  remindAt: z.date().optional().nullable(),
+  remindChannels: z
+    .array(z.enum(["browser", "email"]))
+    .optional()
+    .nullable(),
 });

@@ -22,6 +22,8 @@ import { MatchDetails } from "../automations/MatchDetails";
 import type { JobMatchResponse, JdEvaluationResponse } from "@/models/ai.schemas";
 // CAREERFLOW: Phase 2 — JD evaluation card on the job detail surface.
 import EvaluationCard from "../evaluate/EvaluationCard";
+// CAREERFLOW: Phase 3 — unified per-job timeline.
+import JobTimeline from "../timeline/JobTimeline";
 import { Loader2 } from "lucide-react";
 import { toast } from "../ui/use-toast";
 
@@ -244,6 +246,7 @@ function JobDetails({ job }: { job: JobResponse }) {
           <CardFooter></CardFooter>
         </Card>
       )}
+      {job?.id && <JobTimeline jobId={job.id} />}
       {
         <AiJobMatchSection
           jobId={job?.id}

@@ -7,6 +7,7 @@ import {
   defaultUserSettings,
   AiSettings,
   DisplaySettings,
+  NotificationSettings,
 } from "@/models/userSettings.model";
 
 export const getUserSettings = async (): Promise<any | undefined> => {
@@ -83,6 +84,12 @@ export const updateUserSettings = async (
           ...currentSettings.display,
           ...settings.display,
         },
+        // CAREERFLOW: Phase 3 — deep-merge notification prefs.
+        notifications: {
+          ...defaultUserSettings.notifications,
+          ...currentSettings.notifications,
+          ...settings.notifications,
+        },
       };
     } else {
       mergedSettings = {
@@ -90,6 +97,10 @@ export const updateUserSettings = async (
         ...settings,
         ai: { ...defaultUserSettings.ai, ...settings.ai },
         display: { ...defaultUserSettings.display, ...settings.display },
+        notifications: {
+          ...defaultUserSettings.notifications,
+          ...settings.notifications,
+        },
       };
     }
 
@@ -129,4 +140,11 @@ export const updateDisplaySettings = async (
   displaySettings: DisplaySettings
 ): Promise<any | undefined> => {
   return updateUserSettings({ display: displaySettings });
+};
+
+// CAREERFLOW: Phase 3 — persist notification preferences.
+export const updateNotificationSettings = async (
+  notificationSettings: NotificationSettings
+): Promise<any | undefined> => {
+  return updateUserSettings({ notifications: notificationSettings });
 };
