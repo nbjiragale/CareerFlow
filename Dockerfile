@@ -19,6 +19,11 @@ COPY . .
 
 ENV DATABASE_URL=file:/data/dev.db
 
+# Bump Node's old-space heap so the Next.js typecheck worker doesn't OOM as
+# the project keeps growing (see Phase 3 onward). Inherited only by the
+# builder stage — runtime container reuses Next's defaults.
+ENV NODE_OPTIONS=--max-old-space-size=4096
+
 # Generate Prisma client
 RUN npx prisma generate
 
