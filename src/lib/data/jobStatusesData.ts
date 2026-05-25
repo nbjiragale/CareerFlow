@@ -34,4 +34,16 @@ export const JOB_STATUSES = [
     label: "Archived",
     value: "archived",
   },
+  // CAREERFLOW: redesign (PR F) — new pipeline stages. IDs are stable and match
+  // the careerflow_redesign_status_seed migration so seeded rows are consistent.
+  {
+    id: "2c205d36-3697-48ef-b9a4-d465cc9f95c4",
+    label: "Wishlist",
+    value: "wishlist",
+  },
+  {
+    id: "c0a8a52d-e25b-4429-9408-88dfdc30dc9d",
+    label: "Screening",
+    value: "screening",
+  },
 ];
