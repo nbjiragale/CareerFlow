@@ -95,6 +95,19 @@ export default function DraftReplyDrawer({
       });
       const data = await res.json();
       if (!res.ok) {
+        // CAREERFLOW: when the selected provider/model can't return
+        // structured output, the server returns a 422 with
+        // code="structured_output_unsupported". Surface a model-switch
+        // hint rather than the raw SDK message.
+        if (data.code === "structured_output_unsupported") {
+          toast({
+            variant: "destructive",
+            title: "This model can't return structured output",
+            description:
+              "Switch to a stronger model in Settings → AI Provider (e.g. openai/gpt-4o-mini or anthropic/claude-3.5-sonnet) and try again.",
+          });
+          return;
+        }
         toast({
           variant: "destructive",
           title: "Draft generation failed",

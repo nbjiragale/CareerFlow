@@ -2,7 +2,6 @@ import "server-only";
 
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { streamText, Output } from "ai";
 import { getModel } from "@/lib/ai/providers";
 import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import {
@@ -12,6 +11,8 @@ import {
   AIUnavailableError,
   preprocessResume,
   preprocessJob,
+  structuredObjectToResponse,
+  StructuredOutputUnsupportedError,
 } from "@/lib/ai";
 import { getResumeById } from "@/actions/profile.actions";
 import { getJobDetails } from "@/actions/job.actions";
@@ -96,23 +97,29 @@ export const POST = async (req: NextRequest) => {
       userId,
     );
 
-    // Single comprehensive LLM call
-    const result = streamText({
+    // Single comprehensive LLM call. See /api/ai/resume/review for why we
+    // use the non-streaming helper instead of streamText({ output:
+    // Output.object(...) }) — same Gemini / OpenRouter / Ollama reliability
+    // concerns apply here.
+    return await structuredObjectToResponse({
       model,
-      output: Output.object({
-        schema: JobMatchSchema,
-      }),
+      schema: JobMatchSchema,
       system: JOB_MATCH_SYSTEM_PROMPT,
       prompt: buildJobMatchPrompt(resumeText, jobText),
       temperature: 0.3,
     });
-
-    return result.toTextStreamResponse();
   } catch (error) {
     console.error("Job match error:", error);
 
     if (error instanceof AIUnavailableError) {
       return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+
+    if (error instanceof StructuredOutputUnsupportedError) {
+      return NextResponse.json(
+        { error: error.message, code: "structured_output_unsupported" },
+        { status: 422 },
+      );
     }
 
     const message =

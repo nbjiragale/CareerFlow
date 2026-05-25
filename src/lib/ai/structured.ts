@@ -1,7 +1,8 @@
-// CAREERFLOW: shared structured-output helper used by /api/evaluate and
-// /api/drafts/reply. Wraps Vercel AI SDK's generateObject in a
-// generateText-with-JSON-Schema fallback so we can still produce a
-// schema-valid object when the provider either:
+// CAREERFLOW: shared structured-output helper used by /api/evaluate,
+// /api/drafts/reply, /api/ai/resume/review and /api/ai/resume/match.
+// Wraps Vercel AI SDK's generateObject in a generateText-with-JSON-Schema
+// fallback so we can still produce a schema-valid object when the provider
+// either:
 //
 //   (1) rejects the JSON Schema with HTTP 400 (APICallError) — common on
 //       Gemini and some OpenRouter-proxied models whose structured-output
@@ -118,4 +119,33 @@ export async function generateStructuredObject<T extends z.ZodTypeAny>(
 
     return { object, usage, usedFallback: true };
   }
+}
+
+/**
+ * Emit a structured-output result as a single-chunk plain-text Response that
+ * the Vercel AI SDK's `experimental_useObject` React hook can consume. We
+ * lose progressive streaming UX (the client sees a single arrival of the
+ * whole JSON), but we gain reliability across providers whose structured
+ * streaming mode rejects our JSON Schemas (Gemini, some OpenRouter
+ * proxies, smaller Ollama models).
+ *
+ * Used by the streaming Resume Review / Job Match endpoints that previously
+ * called `streamText({ output: Output.object({...}) })` and had no fallback
+ * path when the provider rejected the schema mid-stream.
+ */
+export async function structuredObjectToResponse<T extends z.ZodTypeAny>(
+  args: GenerateStructuredArgs<T>,
+  retryHint?: string,
+): Promise<Response> {
+  const { object } = await generateStructuredObject(args, retryHint);
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(JSON.stringify(object)));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }

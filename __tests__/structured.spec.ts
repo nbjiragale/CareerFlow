@@ -52,6 +52,7 @@ import {
 } from "ai";
 import {
   generateStructuredObject,
+  structuredObjectToResponse,
   StructuredOutputUnsupportedError,
 } from "@/lib/ai/structured";
 
@@ -243,5 +244,60 @@ describe("generateStructuredObject", () => {
 
     const result = await generateStructuredObject(baseArgs);
     expect(result.object).toEqual({ name: "Hopper", age: 85 });
+  });
+});
+
+describe("structuredObjectToResponse", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns a text/plain Response containing the JSON-serialised object", async () => {
+    generateObjectMock.mockResolvedValue({
+      object: { name: "Ada", age: 30 },
+      usage: { inputTokens: 100, outputTokens: 50 },
+    });
+
+    const res = await structuredObjectToResponse(baseArgs);
+
+    expect(res).toBeInstanceOf(Response);
+    expect(res.headers.get("Content-Type")).toBe(
+      "text/plain; charset=utf-8",
+    );
+    expect(await res.text()).toBe(JSON.stringify({ name: "Ada", age: 30 }));
+  });
+
+  it("uses the fallback path when generateObject throws APICallError(400)", async () => {
+    generateObjectMock.mockRejectedValue(
+      new (APICallError as unknown as new (msg: string, status?: number) => Error)(
+        "Schema rejected",
+        400,
+      ),
+    );
+    generateTextMock.mockResolvedValue({
+      text: '{"name":"Grace","age":42}',
+      usage: { inputTokens: 50, outputTokens: 25 },
+    });
+
+    const res = await structuredObjectToResponse(baseArgs);
+
+    expect(generateTextMock).toHaveBeenCalledTimes(1);
+    expect(await res.text()).toBe(JSON.stringify({ name: "Grace", age: 42 }));
+  });
+
+  it("propagates StructuredOutputUnsupportedError when neither path produces valid JSON", async () => {
+    generateObjectMock.mockRejectedValue(
+      new (NoObjectGeneratedError as unknown as new (msg: string) => Error)(
+        "no object",
+      ),
+    );
+    generateTextMock.mockResolvedValue({
+      text: "I can't help with that.",
+      usage: { inputTokens: 5, outputTokens: 5 },
+    });
+
+    await expect(structuredObjectToResponse(baseArgs)).rejects.toBeInstanceOf(
+      StructuredOutputUnsupportedError,
+    );
   });
 });

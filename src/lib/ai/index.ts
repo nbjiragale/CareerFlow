@@ -47,3 +47,11 @@ export {
 } from "./tools/text-processing";
 
 export { checkRateLimit } from "./rate-limiter";
+
+// CAREERFLOW: structured-output helpers (fallback-aware wrappers around
+// the Vercel AI SDK's generateObject / streamText with Output.object).
+export {
+  generateStructuredObject,
+  structuredObjectToResponse,
+  StructuredOutputUnsupportedError,
+} from "./structured";

@@ -5,7 +5,19 @@
 
 CareerFlow AI is an open-source, self-hostable platform that unifies Gmail tracking, application management, resume tailoring, ATS scoring, and recruiter communication into a single workflow-driven dashboard. Zero infrastructure cost — the only configuration required is your own AI provider key.
 
-**Status:** Phase 0 — fork baseline. Phases 1–4 in active development. See [`docs/IMPLEMENTATION_PLAN.md`](./docs/IMPLEMENTATION_PLAN.md) for the roadmap and [`docs/PRD.md`](./docs/PRD.md) for the product spec.
+**Status:** Phases 1–3 shipped. Phase 4 (release prep — `NOTICE`, self-hosting docs, GHCR publish workflow, v1.0.0 tag) in progress. See [`docs/IMPLEMENTATION_PLAN.md`](./docs/IMPLEMENTATION_PLAN.md) for the full roadmap and [`docs/PRD.md`](./docs/PRD.md) for the product spec.
+
+## What's shipped
+
+CareerFlow inherits everything from JobSync (application tracker, resume builder, AI resume review, AI job match — see the JobSync section below) and adds, on top:
+
+- **Gmail integration** (Phase 1) — OAuth-based connect flow, 15-minute background sync via `node-cron`, encrypted token storage, automatic classification of recruiter / interview / rejection / offer threads. Single-account, read-only scope.
+- **JD evaluation** (Phase 2) — paste any job description, pick an archetype hint or auto-detect, get a structured 0–5 rubric with strengths, gaps, and an A–F grade. Persists onto the linked `Job` row for at-a-glance scoring on the Applications board.
+- **Reply-draft generator** (Phase 2) — generate intent-aware (`confirm` / `decline` / `clarify` / `thank-you`) recruiter reply drafts from a Gmail thread. Drafts are stored locally, never auto-sent. History per thread.
+- **Activity timeline & reminders** (Phase 3) — per-application timeline aggregating Gmail events, evaluation, drafts, and status changes; reminder banners surface high-priority threads needing your attention.
+- **Multi-provider AI** — Ollama (local, default), OpenAI, DeepSeek, Google Gemini, OpenRouter. Configured in Settings → AI Provider. Costs and per-call usage logged to Settings → Usage.
+- **Reliability fallback** — when a model returns prose instead of JSON or a provider rejects our schema constraints (Gemini's `minItems` / `maxItems` / `minimum` / `maximum` restrictions, some OpenRouter proxies), we transparently retry via plain `generateText` with the JSON Schema injected into the prompt. Real auth, quota, and transport errors still surface as-is in Settings → Usage.
+- **Export & delete** — full JSON export of your data and a one-click "delete everything" flow in Settings.
 
 ## Built on
 
@@ -16,13 +28,13 @@ CareerFlow is an orchestration layer over excellent existing open-source project
 - **[career-ops](https://github.com/career-ops/career-ops)** — source of evaluation, tailoring, and outreach prompts. Re-implemented as web-facing API routes that call your configured AI provider.
 - **[srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)** (Apache 2.0) — deferred; planned as an optional Python sidecar for offline semantic scoring in a later phase.
 
-Full attribution and license info in [`NOTICE`](./NOTICE) (TBA).
+Full attribution and license info in [`NOTICE`](./NOTICE) (TBA — Phase 4).
 
 ---
 
 ## Original JobSync README below
 
-The sections below are the unmodified JobSync README except where a `<!-- CAREERFLOW: ... -->` marker calls out a specific edit. Until CareerFlow lands its own feature documentation in Phase 4, treat this as the source of truth for current functionality.
+The sections below are the unmodified JobSync README except where a `<!-- CAREERFLOW: ... -->` marker calls out a specific edit. Use this as supplementary reference for the inherited functionality (application tracker, resume builder, AI resume review, AI job match); CareerFlow-specific functionality is documented in the "What's shipped" section above.
 <!-- CAREERFLOW: end CareerFlow header block; everything below is the upstream JobSync README with marked edits. -->
 
 <!-- CAREERFLOW: appended "(JobSync)" to the heading so readers know the demo is the upstream project, not CareerFlow. -->
