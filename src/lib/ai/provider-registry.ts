@@ -10,6 +10,13 @@ export interface ProviderRegistryEntry {
   defaultCredential?: string;
   modelsEndpoint?: string;
   parseModelsResponse?: (data: any) => string[];
+  // When true, the model picker lets the user type an arbitrary model id
+  // instead of forcing a selection from the fetched list. Fetched models are
+  // still offered as autocomplete suggestions. Used for providers like
+  // OpenRouter that expose hundreds of free-form `vendor/model` slugs.
+  allowCustomModel?: boolean;
+  // Placeholder shown in the manual model input when allowCustomModel is set.
+  modelPlaceholder?: string;
   requiresRunningCheck: boolean;
   supportsKeepAlive: boolean;
   keyConfig: {
@@ -87,6 +94,8 @@ export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
     modelsEndpoint: "openrouter/models",
     parseModelsResponse: (data) =>
       (data.data?.map((m: any) => m.id) ?? []).sort(),
+    allowCustomModel: true,
+    modelPlaceholder: "e.g. openai/gpt-4o",
     requiresRunningCheck: false,
     supportsKeepAlive: false,
     keyConfig: {

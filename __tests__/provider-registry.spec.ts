@@ -77,6 +77,14 @@ describe("PROVIDER_REGISTRY – openrouter entry", () => {
     expect(entry.defaultCredential).toBeUndefined();
   });
 
+  it("allows manually typing a custom model id", () => {
+    expect(entry.allowCustomModel).toBe(true);
+  });
+
+  it("provides a model placeholder for the manual input", () => {
+    expect(entry.modelPlaceholder).toBeTruthy();
+  });
+
   describe("parseModelsResponse", () => {
     it("maps model ids and sorts alphabetically", () => {
       const data = {

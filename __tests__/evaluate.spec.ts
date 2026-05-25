@@ -22,6 +22,14 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("ai", () => ({
   generateObject: vi.fn(),
+  generateText: vi.fn(),
+  // Mirror the real export so evaluate.ts can branch on it. isInstance must
+  // return false for unrelated errors so they propagate unchanged.
+  NoObjectGeneratedError: class NoObjectGeneratedError extends Error {
+    static isInstance(err: unknown): err is Error {
+      return err instanceof NoObjectGeneratedError;
+    }
+  },
 }));
 
 vi.mock("@/lib/ai/providers", () => ({
@@ -29,7 +37,7 @@ vi.mock("@/lib/ai/providers", () => ({
 }));
 
 import db from "@/lib/db";
-import { generateObject } from "ai";
+import { generateObject, generateText, NoObjectGeneratedError } from "ai";
 import { getModel } from "@/lib/ai/providers";
 import { runJdEvaluation } from "@/lib/ai/evaluate";
 import {
@@ -42,6 +50,7 @@ const findSettings = db.userSettings.findUnique as unknown as ReturnType<
 const updateJob = db.job.update as unknown as ReturnType<typeof vi.fn>;
 const createAudit = db.aiAuditLog.create as unknown as ReturnType<typeof vi.fn>;
 const generateObjectMock = generateObject as unknown as ReturnType<typeof vi.fn>;
+const generateTextMock = generateText as unknown as ReturnType<typeof vi.fn>;
 const getModelMock = getModel as unknown as ReturnType<typeof vi.fn>;
 
 function settingsRow(overrides: Record<string, unknown> = {}) {
@@ -233,5 +242,49 @@ describe("runJdEvaluation", () => {
     expect(data.status).toBe("error");
     expect(data.errorMessage).toBe("LLM blew up");
     expect(data.totalTokens).toBe(0);
+  });
+
+  // CAREERFLOW: structured-output fallback for OpenRouter models that don't
+  // support response_format json_schema — generateObject throws
+  // NoObjectGeneratedError, so we retry via generateText + manual JSON parse.
+  it("falls back to generateText when generateObject yields no object", async () => {
+    findSettings.mockResolvedValue(
+      settingsRow({ ai: { provider: "openrouter", model: "x-ai/grok" } }),
+    );
+    generateObjectMock.mockRejectedValue(
+      new (NoObjectGeneratedError as any)("no object"),
+    );
+    generateTextMock.mockResolvedValue({
+      // Wrapped in prose + a markdown fence to exercise extraction.
+      text: "Here you go:\n```json\n" +
+        JSON.stringify(evaluationObject(4.2)) +
+        "\n```\nHope that helps!",
+      usage: { inputTokens: 10, outputTokens: 20 },
+    });
+
+    const result = await runJdEvaluation({ userId: "u1", jdText: "JD text" });
+
+    expect(generateObjectMock).toHaveBeenCalledTimes(1);
+    expect(generateTextMock).toHaveBeenCalledTimes(1);
+    expect(result.evaluation.grade).toBe("B"); // normalized from 4.2
+    expect(createAudit.mock.calls[0][0].data.status).toBe("success");
+  });
+
+  it("throws a clear error when the fallback text is not valid JSON", async () => {
+    findSettings.mockResolvedValue(
+      settingsRow({ ai: { provider: "openrouter", model: "x-ai/grok" } }),
+    );
+    generateObjectMock.mockRejectedValue(
+      new (NoObjectGeneratedError as any)("no object"),
+    );
+    generateTextMock.mockResolvedValue({
+      text: "I cannot help with that.",
+      usage: { inputTokens: 10, outputTokens: 5 },
+    });
+
+    await expect(
+      runJdEvaluation({ userId: "u1", jdText: "JD text" }),
+    ).rejects.toThrow(/did not return a valid evaluation/);
+    expect(createAudit.mock.calls[0][0].data.status).toBe("error");
   });
 });

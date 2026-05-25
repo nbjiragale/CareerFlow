@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
 import { XCircle, Loader2 } from "lucide-react";
@@ -149,11 +150,12 @@ function AiSettings() {
   }, [selectedModel.provider, isInitialized]);
 
   const saveModelSettings = async () => {
-    if (!selectedModel.model) {
+    const model = selectedModel.model?.trim();
+    if (!model) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please select a model to save.",
+        description: "Please select or enter a model to save.",
       });
       return;
     }
@@ -161,7 +163,7 @@ function AiSettings() {
     try {
       const result = await updateAiSettings({
         provider: selectedModel.provider,
-        model: selectedModel.model,
+        model,
       });
       if (result.success) {
         toast({
@@ -187,6 +189,10 @@ function AiSettings() {
       setIsSaving(false);
     }
   };
+
+  const providerEntry = PROVIDER_REGISTRY[selectedModel.provider];
+  const allowsCustomModel = providerEntry?.allowCustomModel ?? false;
+  const trimmedModel = selectedModel.model?.trim() ?? "";
 
   if (isLoadingSettings) {
     return (
@@ -246,51 +252,88 @@ function AiSettings() {
         <Label className="my-4" htmlFor="ai-model">
           Model
         </Label>
-        <div className="flex items-start gap-2">
-          <Select
-            value={selectedModel.model}
-            onValueChange={setSelectedProviderModel}
-            disabled={isLoadingModels}
-          >
-            <SelectTrigger
+        {allowsCustomModel ? (
+          <div className="flex flex-col gap-1.5">
+            <Input
               id="ai-model"
-              aria-label="Select Model"
-              className="w-[180px]"
+              aria-label="Model"
+              className="w-[320px]"
+              list="ai-model-suggestions"
+              placeholder={providerEntry?.modelPlaceholder || "Enter model id"}
+              value={selectedModel.model ?? ""}
+              onChange={(e) => setSelectedProviderModel(e.target.value)}
+            />
+            <datalist id="ai-model-suggestions">
+              {fetchedModels.map((model) => (
+                <option key={model} value={model} />
+              ))}
+            </datalist>
+            <p className="text-xs text-muted-foreground">
+              Type any {providerEntry?.displayName} model id (e.g.{" "}
+              <code>openai/gpt-4o</code>,{" "}
+              <code>anthropic/claude-3.5-sonnet</code>).{" "}
+              {isLoadingModels
+                ? "Loading suggestions…"
+                : fetchedModels.length > 0
+                  ? "Start typing to see available models."
+                  : "Add your API key in API Keys settings to use it."}
+            </p>
+            {fetchError && (
+              <div className="flex items-center gap-1 text-amber-600 text-sm">
+                <XCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{fetchError} You can still enter a model manually.</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-start gap-2">
+            <Select
+              value={selectedModel.model}
+              onValueChange={setSelectedProviderModel}
+              disabled={isLoadingModels}
             >
-              <SelectValue
-                placeholder={
-                  isLoadingModels ? "Loading models..." : "Select AI Model"
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {fetchedModels.map((model) => (
-                  <SelectItem key={model} value={model} className="capitalize">
-                    {model}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {fetchError && (
-            <div className="flex items-center gap-1 text-red-600 text-sm mt-2">
-              <XCircle className="h-4 w-4 flex-shrink-0" />
-              <span>{fetchError}</span>
-            </div>
-          )}
-          {connectionError && (
-            <div className="flex items-center gap-1 text-red-600 text-sm mt-2">
-              <XCircle className="h-4 w-4 flex-shrink-0" />
-              <span>{connectionError}</span>
-            </div>
-          )}
-        </div>
+              <SelectTrigger
+                id="ai-model"
+                aria-label="Select Model"
+                className="w-[180px]"
+              >
+                <SelectValue
+                  placeholder={
+                    isLoadingModels ? "Loading models..." : "Select AI Model"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {fetchedModels.map((model) => (
+                    <SelectItem key={model} value={model} className="capitalize">
+                      {model}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {fetchError && (
+              <div className="flex items-center gap-1 text-red-600 text-sm mt-2">
+                <XCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{fetchError}</span>
+              </div>
+            )}
+            {connectionError && (
+              <div className="flex items-center gap-1 text-red-600 text-sm mt-2">
+                <XCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{connectionError}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <Button
         className="mt-4"
         onClick={saveModelSettings}
-        disabled={!selectedModel.model || isLoadingModels || isSaving}
+        disabled={
+          !trimmedModel || (!allowsCustomModel && isLoadingModels) || isSaving
+        }
       >
         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Save

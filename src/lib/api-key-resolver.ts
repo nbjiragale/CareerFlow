@@ -26,6 +26,12 @@ export async function resolveApiKey(
           })
           .catch(() => {});
 
+        // Non-sensitive credentials (e.g. Ollama base URL) are stored as
+        // plaintext with an empty iv. Only decrypt actual ciphertext —
+        // otherwise decrypt() throws and we silently fall back to the env
+        // var / default, ignoring the user's configured value.
+        if (apiKey.iv === "") return apiKey.encryptedKey;
+
         return decrypt(apiKey.encryptedKey, apiKey.iv);
       }
     } catch {
