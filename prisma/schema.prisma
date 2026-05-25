@@ -41,12 +41,16 @@ model User {
   // CAREERFLOW: back-relations for Phase 2 (JD eval + reply drafts + usage audit).
   AiDraft                       AiDraft[]
   AiAuditLog                    AiAuditLog[]
+  // CAREERFLOW: back-relations for Phase 3 (reminders + email log).
+  Reminder                      Reminder[]
+  EmailLog                      EmailLog[]
 }
 
 model ApiKey {
   id           String    @id @default(uuid())
   userId       String
-  user         User      @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Settings → Delete Account removes encrypted keys.
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider     String
   encryptedKey String
   iv           String
@@ -63,7 +67,8 @@ model ApiKey {
 model UserSettings {
   id        String   @id @default(uuid())
   userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Settings → Delete Account removes user prefs.
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   settings  String   @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -72,7 +77,8 @@ model UserSettings {
 model Profile {
   id           String        @id @default(uuid())
   userId       String
-  user         User          @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Settings → Delete Account removes Profile chain.
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   resumes      Resume[]
   coverLetters CoverLetter[]
 }
@@ -85,7 +91,8 @@ model Resume {
   updatedAt      DateTime        @updatedAt
   ContactInfo    ContactInfo?
   ResumeSections ResumeSection[]
-  profile        Profile         @relation(fields: [profileId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Profile delete (in turn cascaded from User) wipes Resume.
+  profile        Profile         @relation(fields: [profileId], references: [id], onDelete: Cascade)
   File           File?           @relation(fields: [FileId], references: [id])
   FileId         String?         @unique
   Job            Job[]
@@ -99,7 +106,8 @@ model CoverLetter {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  profile   Profile  @relation(fields: [profileId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Profile delete wipes CoverLetter.
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   Job       Job[]
 }
 
@@ -118,12 +126,15 @@ model ResumeSection {
   sectionTitle            String
   sectionType             String
   summaryId               String?                  @unique
-  summary                 Summary?                 @relation(fields: [summaryId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull on optional Summary so cascade from Resume
+  // doesn't break when a section has no summary attached.
+  summary                 Summary?                 @relation(fields: [summaryId], references: [id], onDelete: SetNull)
   workExperiences         WorkExperience[]
   educations              Education[]
   licenseOrCertifications LicenseOrCertification[]
   others                  OtherSection[]
-  Resume                  Resume                   @relation(fields: [resumeId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Resume delete wipes ResumeSection.
+  Resume                  Resume                   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model ContactInfo {
@@ -137,7 +148,8 @@ model ContactInfo {
   email     String
   phone     String
   address   String?
-  resume    Resume   @relation(fields: [resumeId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Resume delete wipes ContactInfo.
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Summary {
@@ -153,16 +165,20 @@ model WorkExperience {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   companyId       String
-  Company         Company        @relation(fields: [companyId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so deleting a user-owned Company removes their WorkExperiences.
+  Company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   jobTitleId      String
-  jobTitle        JobTitle       @relation(fields: [jobTitleId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so deleting a user-owned JobTitle removes their WorkExperiences.
+  jobTitle        JobTitle       @relation(fields: [jobTitleId], references: [id], onDelete: Cascade)
   startDate       DateTime
   endDate         DateTime?
   description     String
   locationId      String
-  location        Location       @relation(fields: [locationId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so deleting a user-owned Location removes their WorkExperiences.
+  location        Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
   resumeSectionId String?
-  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull so ResumeSection delete just unlinks (already cascaded via owner).
+  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id], onDelete: SetNull)
 }
 
 model Education {
@@ -176,9 +192,11 @@ model Education {
   endDate         DateTime?
   description     String?
   locationId      String
-  location        Location       @relation(fields: [locationId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Location delete (via User cascade) removes the Education row.
+  location        Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
   resumeSectionId String?
-  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull so ResumeSection delete just unlinks.
+  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id], onDelete: SetNull)
 }
 
 model LicenseOrCertification {
@@ -188,7 +206,8 @@ model LicenseOrCertification {
   issueDate       DateTime?
   expirationDate  DateTime?
   credentialUrl   String?
-  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull so ResumeSection delete just unlinks.
+  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id], onDelete: SetNull)
   resumeSectionId String?
 }
 
@@ -198,7 +217,8 @@ model OtherSection {
   updatedAt       DateTime       @updatedAt
   title           String
   content         String
-  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull so ResumeSection delete just unlinks.
+  ResumeSection   ResumeSection? @relation(fields: [resumeSectionId], references: [id], onDelete: SetNull)
   resumeSectionId String?
 }
 
@@ -208,8 +228,10 @@ model Contact {
   email       String
   createdAt   DateTime
   createdBy   String // userId
-  user        User       @relation(fields: [createdBy], references: [id])
-  Interview   Interview? @relation(fields: [interviewId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their contacts.
+  user        User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  // CAREERFLOW: Phase 3 — SetNull so Interview delete just unlinks (Contact survives).
+  Interview   Interview? @relation(fields: [interviewId], references: [id], onDelete: SetNull)
   interviewId String?
 }
 
@@ -219,7 +241,8 @@ model JobTitle {
   value           String
   jobs            Job[]
   createdBy       String // userId
-  user            User             @relation(fields: [createdBy], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their JobTitle lookups.
+  user            User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   workExperiences WorkExperience[]
 
   @@unique([value, createdBy])
@@ -240,7 +263,8 @@ model Location {
   country        String?
   jobsApplied    Job[]
   createdBy      String // userId
-  user           User             @relation(fields: [createdBy], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Location lookups.
+  user           User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   educations     Education[]
   workExperience WorkExperience[]
 
@@ -254,7 +278,8 @@ model Company {
   jobsApplied     Job[]
   logoUrl         String? // field is optional
   createdBy       String // userId
-  user            User             @relation(fields: [createdBy], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Company lookups.
+  user            User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   workExperiences WorkExperience[]
 
   @@unique([value, createdBy])
@@ -266,7 +291,8 @@ model JobSource {
   value       String
   jobsApplied Job[]
   createdBy   String // userId
-  user        User   @relation(fields: [createdBy], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their JobSource lookups.
+  user        User   @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 
   @@unique([value, createdBy])
 }
@@ -275,14 +301,16 @@ model Interview {
   id           String    @id @default(uuid())
   createdAt    DateTime
   jobId        String
-  job          Job?      @relation(fields: [jobId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Job delete wipes its Interview rows.
+  job          Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   interviewers Contact[]
 }
 
 model Job {
   id            String       @id @default(uuid())
   userId        String
-  User          User         @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Jobs (→ Notes, Interviews, drafts).
+  User          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobUrl        String?
   description   String
   jobType       String
@@ -291,20 +319,24 @@ model Job {
   appliedDate   DateTime?
   dueDate       DateTime?
   statusId      String
+  // JobStatus is a global lookup (not user-owned); no cascade.
   Status        JobStatus    @relation(fields: [statusId], references: [id])
-  JobTitle      JobTitle     @relation(fields: [jobTitleId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade because JobTitle is user-owned and cascades from User.
+  JobTitle      JobTitle     @relation(fields: [jobTitleId], references: [id], onDelete: Cascade)
   jobTitleId    String
-  Company       Company      @relation(fields: [companyId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade because Company is user-owned and cascades from User.
+  Company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String
-  JobSource     JobSource?   @relation(fields: [jobSourceId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull on optional lookup FKs so deletes don't error mid-walk.
+  JobSource     JobSource?   @relation(fields: [jobSourceId], references: [id], onDelete: SetNull)
   jobSourceId   String?
   salaryRange   String?
-  Location      Location?    @relation(fields: [locationId], references: [id])
+  Location      Location?    @relation(fields: [locationId], references: [id], onDelete: SetNull)
   locationId    String?
   Interview     Interview[]
-  Resume        Resume?      @relation(fields: [resumeId], references: [id])
+  Resume        Resume?      @relation(fields: [resumeId], references: [id], onDelete: SetNull)
   resumeId      String?
-  CoverLetter   CoverLetter? @relation(fields: [coverLetterId], references: [id])
+  CoverLetter   CoverLetter? @relation(fields: [coverLetterId], references: [id], onDelete: SetNull)
   coverLetterId String?
   Notes         Note[]
   tags          Tag[]
@@ -340,7 +372,8 @@ model ActivityType {
   value       String
   description String?
   createdBy   String // userId
-  user        User     @relation(fields: [createdBy], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their ActivityType lookups.
+  user        User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -353,7 +386,8 @@ model ActivityType {
 model Activity {
   id           String    @id @default(uuid())
   userId       String
-  User         User      @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Activity rows.
+  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   activityName String
   startTime    DateTime
   endTime      DateTime?
@@ -362,17 +396,31 @@ model Activity {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  activityType   ActivityType @relation(fields: [activityTypeId], references: [id])
+  // CAREERFLOW: Phase 3 — unified timeline source tag. "manual" for hand-entered
+  // rows, "gmail" / "ai_eval" / "ai_match" / "ai_draft" / "scheduler" for
+  // system-generated events. Default keeps backfill simple.
+  source       String  @default("manual")
+  // CAREERFLOW: Phase 3 — JSON-encoded extra fields per source (e.g. emailThreadId,
+  // aiDraftId). SQLite has no native JSON; we store a String and parse on read.
+  metadataJson String?
+
+  // CAREERFLOW: Phase 3 — cascade so the ActivityType lookup row going away
+  // (which itself cascades from User) takes the Activity with it.
+  activityType   ActivityType @relation(fields: [activityTypeId], references: [id], onDelete: Cascade)
   activityTypeId String
 
   taskId String? @unique
-  task   Task?   @relation(fields: [taskId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull on optional Task FK so Task delete just unlinks.
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId, source, startTime])
 }
 
 model Task {
   id     String @id @default(uuid())
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Tasks.
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   title           String
   description     String?
@@ -381,10 +429,21 @@ model Task {
   percentComplete Int       @default(0)
   dueDate         DateTime?
 
+  // CAREERFLOW: Phase 3 — reminder scheduling. remindAt is when to fire (may differ
+  // from dueDate). remindedAt is stamped once the dispatcher fires so the same
+  // reminder doesn't double-trigger. remindChannels is a JSON array of
+  // "browser" | "email" — default keeps the noisy email channel opt-in.
+  remindAt       DateTime?
+  remindedAt     DateTime?
+  remindChannels String    @default("[\"browser\"]")
+
   activityTypeId String?
-  activityType   ActivityType? @relation(fields: [activityTypeId], references: [id])
+  // CAREERFLOW: Phase 3 — SetNull on optional ActivityType FK.
+  activityType   ActivityType? @relation(fields: [activityTypeId], references: [id], onDelete: SetNull)
 
   activity Activity?
+  // CAREERFLOW: Phase 3 — back-relation for outbound notifications.
+  Reminder Reminder[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -393,19 +452,23 @@ model Task {
   @@index([userId, status])
   @@index([userId, activityTypeId])
   @@index([userId, dueDate])
+  // CAREERFLOW: Phase 3 — covers the dispatcher's "due and not yet sent" query.
+  @@index([remindAt, remindedAt])
 }
 
 model Automation {
   id     String @id @default(uuid())
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Automations.
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name           String
   jobBoard       String
   keywords       String
   location       String
   resumeId       String
-  resume         Resume @relation(fields: [resumeId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so Resume delete (via User chain) wipes Automation.
+  resume         Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   matchThreshold Int    @default(80)
 
   scheduleHour Int
@@ -451,7 +514,8 @@ model Note {
   jobId     String
   job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Notes.
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -465,7 +529,8 @@ model Tag {
   label     String
   value     String
   createdBy String
-  user      User       @relation(fields: [createdBy], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Tags.
+  user      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   jobs      Job[]
   questions Question[]
 
@@ -477,7 +542,8 @@ model Question {
   question  String
   answer    String?
   createdBy String
-  user      User     @relation(fields: [createdBy], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their Questions.
+  user      User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   tags      Tag[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -501,7 +567,8 @@ model Question {
 model OAuthToken {
   id                    String    @id @default(uuid())
   userId                String
-  User                  User      @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes encrypted Gmail tokens.
+  User                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   provider              String // "google" today; future: "microsoft" for Outlook
   encryptedRefreshToken String // AES-256-GCM ciphertext (base64) via src/lib/encryption.ts
   refreshTokenIv        String // salt.iv (base64.base64) — same format as ApiKey.iv
@@ -527,7 +594,8 @@ model OAuthToken {
 model EmailThread {
   id             String  @id @default(uuid())
   userId         String
-  User           User    @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their EmailThreads.
+  User           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   gmailThreadId  String
   gmailMessageId String // most recent message.id in the thread; for direct linking
   jobId          String?
@@ -566,7 +634,8 @@ model EmailThread {
 model EmailClassificationCorrection {
   id                 String      @id @default(uuid())
   userId             String
-  User               User        @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their corrections.
+  User               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   emailThreadId      String      @unique
   EmailThread        EmailThread @relation(fields: [emailThreadId], references: [id], onDelete: Cascade)
   originalLabel      String
@@ -590,7 +659,8 @@ model EmailClassificationCorrection {
 model AiDraft {
   id            String       @id @default(uuid())
   userId        String
-  User          User         @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their AI drafts.
+  User          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   emailThreadId String?
   EmailThread   EmailThread? @relation(fields: [emailThreadId], references: [id], onDelete: SetNull)
   jobId         String?
@@ -609,7 +679,8 @@ model AiDraft {
 model AiAuditLog {
   id               String   @id @default(uuid())
   userId           String
-  User             User     @relation(fields: [userId], references: [id])
+  // CAREERFLOW: Phase 3 — cascade so user deletion removes their AI audit log rows.
+  User             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   feature          String // "evaluate" | "reply-draft"
   provider         String
   model            String
@@ -626,4 +697,49 @@ model AiAuditLog {
 
   @@index([userId, createdAt])
   @@index([userId, feature])
+}
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: Phase 3 — reminders + outbound email audit.
+//
+// Reminder: one row per (Task, channel) dispatch attempt. Written by the
+// 1-minute scheduler tick (`src/lib/scheduler/index.ts`) when a Task's
+// remindAt has elapsed and remindedAt is still null. Browser deliveries
+// are streamed to the dashboard via SSE; email deliveries call the
+// optional nodemailer transport.
+//
+// EmailLog: audit-only history of outbound emails. Powers a future
+// "what got sent" view in Settings without keeping the recipient address
+// in memory. Cascades from User per the Phase 3 hard-delete contract.
+// ---------------------------------------------------------------------------
+model Reminder {
+  id           String    @id @default(uuid())
+  userId       String
+  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId       String
+  Task         Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  channel      String // "browser" | "email"
+  payloadJson  String // JSON-encoded notification payload (title, body, link)
+  status       String    @default("pending") // "pending" | "sent" | "failed"
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  sentAt       DateTime?
+
+  @@index([userId, status])
+  @@index([taskId])
+  @@index([status, createdAt])
+}
+
+model EmailLog {
+  id           String   @id @default(uuid())
+  userId       String
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toAddress    String
+  subject      String
+  template     String // "task-reminder" etc.
+  status       String // "sent" | "failed"
+  errorMessage String?
+  sentAt       DateTime @default(now())
+
+  @@index([userId, sentAt])
 }
