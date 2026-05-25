@@ -12,6 +12,10 @@ import {
   Mail,
   // CAREERFLOW: Phase 2 — JD evaluate tab icon.
   Sparkles,
+  // CAREERFLOW: redesign — new IA icons.
+  Inbox,
+  FileText,
+  Bell,
 } from "lucide-react";
 
 export const APP_CONSTANTS = {
@@ -117,5 +121,61 @@ export const SIDEBAR_LINKS = [
     route: "/dashboard/developer",
     label: "Developer Options",
     devOnly: true,
+  },
+];
+
+// CAREERFLOW: redesign — sectioned sidebar IA matching the design mockup.
+// `countKey` maps to the live counts the dashboard layout passes to the sidebar.
+export type SidebarCountKey = "applications" | "inbox";
+
+export interface SidebarNavItem {
+  icon: typeof LayoutDashboard;
+  route: string;
+  label: string;
+  countKey?: SidebarCountKey;
+  devOnly?: boolean;
+}
+
+export interface SidebarSection {
+  label: string | null;
+  items: SidebarNavItem[];
+}
+
+export const SIDEBAR_SECTIONS: SidebarSection[] = [
+  {
+    label: null,
+    items: [
+      { icon: LayoutDashboard, route: "/dashboard", label: "Dashboard" },
+      {
+        icon: BriefcaseBusiness,
+        route: "/dashboard/myjobs",
+        label: "Applications",
+        countKey: "applications",
+      },
+      { icon: Inbox, route: "/dashboard/gmail", label: "Inbox", countKey: "inbox" },
+    ],
+  },
+  {
+    label: "AI Tools",
+    items: [
+      { icon: Sparkles, route: "/dashboard/evaluate", label: "Evaluate JD" },
+      { icon: FileText, route: "/dashboard/profile", label: "Resumes" },
+      { icon: Bell, route: "/dashboard/tasks", label: "Reminders" },
+    ],
+  },
+  {
+    label: "More",
+    items: [
+      { icon: Zap, route: "/dashboard/automations", label: "Automations" },
+      { icon: CalendarClock, route: "/dashboard/activities", label: "Activities" },
+      { icon: BookOpen, route: "/dashboard/questions", label: "Question Bank" },
+      { icon: Sheet, route: "/dashboard/admin", label: "Administration" },
+      {
+        icon: Wrench,
+        route: "/dashboard/developer",
+        label: "Developer Options",
+        devOnly: true,
+      },
+    ],
   },
 ];
