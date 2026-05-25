@@ -23,9 +23,33 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-vi.mock("ai", () => ({
-  generateObject: vi.fn(),
-}));
+vi.mock("ai", () => {
+  // Mirror the real exports so the structured-output helper can branch on
+  // them. isInstance must return false for unrelated errors so they
+  // propagate unchanged.
+  class NoObjectGeneratedError extends Error {
+    static isInstance(err: unknown): err is Error {
+      return err instanceof NoObjectGeneratedError;
+    }
+  }
+  class APICallError extends Error {
+    statusCode?: number;
+    constructor(message: string, statusCode?: number) {
+      super(message);
+      this.statusCode = statusCode;
+      this.name = "AI_APICallError";
+    }
+    static isInstance(err: unknown): err is APICallError {
+      return err instanceof APICallError;
+    }
+  }
+  return {
+    generateObject: vi.fn(),
+    generateText: vi.fn(),
+    NoObjectGeneratedError,
+    APICallError,
+  };
+});
 
 vi.mock("@/lib/ai/providers", () => ({
   getModel: vi.fn(),
@@ -49,7 +73,12 @@ vi.mock("@/lib/gmail/body", () => ({
 }));
 
 import db from "@/lib/db";
-import { generateObject } from "ai";
+import {
+  generateObject,
+  generateText,
+  NoObjectGeneratedError,
+  APICallError,
+} from "ai";
 import { getModel } from "@/lib/ai/providers";
 import { getAuthorizedGmail, GmailNotConnectedError } from "@/lib/gmail/client";
 import { extractEmailBody } from "@/lib/gmail/body";
@@ -71,6 +100,7 @@ const findManyDrafts = db.aiDraft.findMany as unknown as ReturnType<
 >;
 const createAudit = db.aiAuditLog.create as unknown as ReturnType<typeof vi.fn>;
 const generateObjectMock = generateObject as unknown as ReturnType<typeof vi.fn>;
+const generateTextMock = generateText as unknown as ReturnType<typeof vi.fn>;
 const getModelMock = getModel as unknown as ReturnType<typeof vi.fn>;
 const getAuthorizedGmailMock = getAuthorizedGmail as unknown as ReturnType<
   typeof vi.fn
@@ -329,6 +359,85 @@ describe("generateReplyDraft", () => {
         intent: "reply",
       }),
     ).rejects.toThrow(/provider\/model not selected/);
+  });
+
+  // CAREERFLOW: structured-output fallback. Smaller / non-tool-calling models
+  // (common on OpenRouter and Ollama) return prose instead of structured
+  // output, so generateObject throws NoObjectGeneratedError. The helper
+  // retries via generateText + JSON Schema and we should still ship a draft.
+  it("falls back to generateText on NoObjectGeneratedError", async () => {
+    findSettings.mockResolvedValue(settingsRow());
+    findThread.mockResolvedValue(threadRow());
+    generateObjectMock.mockRejectedValue(
+      new (NoObjectGeneratedError as any)("no object"),
+    );
+    generateTextMock.mockResolvedValue({
+      text:
+        "```json\n" +
+        JSON.stringify(draftObject({ tone: "brief" })) +
+        "\n```",
+      usage: { inputTokens: 200, outputTokens: 100 },
+    });
+
+    const result = await generateReplyDraft({
+      userId: "u1",
+      emailThreadId: "thread-1",
+      intent: "reply",
+    });
+
+    expect(generateTextMock).toHaveBeenCalledTimes(1);
+    expect(result.draft.tone).toBe("brief");
+    expect(createDraft).toHaveBeenCalledTimes(1);
+    expect(createAudit.mock.calls[0][0].data.status).toBe("success");
+  });
+
+  it("falls back to generateText on APICallError statusCode=400", async () => {
+    findSettings.mockResolvedValue(settingsRow());
+    findThread.mockResolvedValue(threadRow());
+    generateObjectMock.mockRejectedValue(
+      new (APICallError as any)("Schema not supported", 400),
+    );
+    generateTextMock.mockResolvedValue({
+      text: JSON.stringify(draftObject({ tone: "professional" })),
+      usage: { inputTokens: 200, outputTokens: 100 },
+    });
+
+    const result = await generateReplyDraft({
+      userId: "u1",
+      emailThreadId: "thread-1",
+      intent: "reply",
+    });
+
+    expect(generateTextMock).toHaveBeenCalledTimes(1);
+    expect(result.draft.tone).toBe("professional");
+    expect(createDraft).toHaveBeenCalledTimes(1);
+    expect(createAudit.mock.calls[0][0].data.status).toBe("success");
+  });
+
+  // 401 / 429 / 5xx are real auth/quota/transport problems — the helper must
+  // NOT mask them with a retry. The error bubbles up unchanged so the user
+  // sees the actual provider error in Settings -> Usage.
+  it("does NOT fall back on APICallError statusCode=401 (auth)", async () => {
+    findSettings.mockResolvedValue(settingsRow());
+    findThread.mockResolvedValue(threadRow());
+    generateObjectMock.mockRejectedValue(
+      new (APICallError as any)("Incorrect API key", 401),
+    );
+
+    await expect(
+      generateReplyDraft({
+        userId: "u1",
+        emailThreadId: "thread-1",
+        intent: "reply",
+      }),
+    ).rejects.toThrow("Incorrect API key");
+
+    expect(generateTextMock).not.toHaveBeenCalled();
+    expect(createDraft).not.toHaveBeenCalled();
+    expect(createAudit.mock.calls[0][0].data.status).toBe("error");
+    expect(createAudit.mock.calls[0][0].data.errorMessage).toBe(
+      "Incorrect API key",
+    );
   });
 });
 

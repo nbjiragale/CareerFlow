@@ -2,7 +2,6 @@ import "server-only";
 
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { streamText, Output } from "ai";
 import { getModel } from "@/lib/ai/providers";
 import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import {
@@ -11,6 +10,8 @@ import {
   buildResumeReviewPrompt,
   AIUnavailableError,
   preprocessResume,
+  structuredObjectToResponse,
+  StructuredOutputUnsupportedError,
 } from "@/lib/ai";
 import { Resume } from "@/models/profile.model";
 import { AiModel } from "@/models/ai.model";
@@ -71,23 +72,32 @@ export const POST = async (req: NextRequest) => {
       userId,
     );
 
-    // Single comprehensive LLM call
-    const result = streamText({
+    // Single comprehensive LLM call. We use the non-streaming helper rather
+    // than streamText({ output: Output.object(...) }) so that we get an
+    // automatic generateText-with-JSON-Schema fallback whenever the provider
+    // rejects our JSON Schema (Gemini, some OpenRouter proxies) or returns
+    // prose instead of structured output (smaller Ollama models). The
+    // useObject() client hook still parses the single-chunk JSON response
+    // correctly — we just lose the progressive-streaming UX.
+    return await structuredObjectToResponse({
       model,
-      output: Output.object({
-        schema: ResumeReviewSchema,
-      }),
+      schema: ResumeReviewSchema,
       system: RESUME_REVIEW_SYSTEM_PROMPT,
       prompt: buildResumeReviewPrompt(normalizedText),
       temperature: 0.3,
     });
-
-    return result.toTextStreamResponse();
   } catch (error) {
     console.error("Resume review error:", error);
 
     if (error instanceof AIUnavailableError) {
       return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+
+    if (error instanceof StructuredOutputUnsupportedError) {
+      return NextResponse.json(
+        { error: error.message, code: "structured_output_unsupported" },
+        { status: 422 },
+      );
     }
 
     const message =

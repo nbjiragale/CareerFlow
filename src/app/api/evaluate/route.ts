@@ -10,6 +10,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import { runJdEvaluation } from "@/lib/ai/evaluate";
+import { StructuredOutputUnsupportedError } from "@/lib/ai/structured";
 import { ArchetypeSchema } from "@/models/ai.schemas";
 
 const BodySchema = z.object({
@@ -59,6 +60,12 @@ export const POST = async (req: NextRequest) => {
     });
     return NextResponse.json(result);
   } catch (err) {
+    if (err instanceof StructuredOutputUnsupportedError) {
+      return NextResponse.json(
+        { error: err.message, code: "structured_output_unsupported" },
+        { status: 422 },
+      );
+    }
     const message = err instanceof Error ? err.message : "Evaluation failed";
     const status =
       message.toLowerCase().includes("not configured") ||
