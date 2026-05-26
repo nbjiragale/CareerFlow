@@ -23,6 +23,8 @@ import type { JobMatchResponse, JdEvaluationResponse } from "@/models/ai.schemas
 import EvaluationCard from "../evaluate/EvaluationCard";
 // CAREERFLOW: Phase 3 — unified per-job timeline.
 import JobTimeline from "../timeline/JobTimeline";
+// CAREERFLOW: Interview Copilot — auto-surfaced for interview-stage jobs.
+import InterviewCopilot from "./InterviewCopilot";
 import { Loader2 } from "lucide-react";
 import { toast } from "../ui/use-toast";
 
@@ -258,6 +260,17 @@ function JobDetails({ job }: { job: JobResponse }) {
             )
           : null}
       </Card>
+
+      {/* Interview Copilot — auto-surfaces at the interview stage, or whenever
+          a brief has already been generated for this job. */}
+      {job?.id &&
+        (job.Status?.value === "interview" || job.interviewPrepJson) && (
+          <InterviewCopilot
+            jobId={job.id}
+            initialPrepJson={job.interviewPrepJson ?? null}
+            isInterviewStage={job.Status?.value === "interview"}
+          />
+        )}
 
       {/* AI evaluation */}
       {parsedEvaluation && (

@@ -56,6 +56,9 @@ export interface JobResponse {
   evaluationGrade?: string | null;
   evaluationJson?: string | null;
   evaluatedAt?: Date | string | null;
+  // CAREERFLOW: Interview Copilot — cached prep brief on Job.
+  interviewPrepJson?: string | null;
+  interviewPreppedAt?: Date | string | null;
 }
 
 export interface JobTitle {

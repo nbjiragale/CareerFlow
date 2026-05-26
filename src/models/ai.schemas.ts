@@ -432,3 +432,61 @@ export const ResumeTailorSchema = z.object({
 
 export type ResumeTailorResponse = z.infer<typeof ResumeTailorSchema>;
 export type TailoredExperience = z.infer<typeof TailoredExperienceSchema>;
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: Interview Copilot — prep brief generated on demand for jobs in
+// the interview stage. Combines the JD + the candidate's resume into company
+// context, likely questions, talking points, and prep actions. The model has
+// no live web access, so company context is flagged as general-knowledge and
+// must be verified.
+// ---------------------------------------------------------------------------
+
+const InterviewQuestionSchema = z.object({
+  category: z
+    .enum(["technical", "behavioral", "role-specific", "culture-fit"])
+    .describe("The kind of question this is."),
+  question: z.string().describe("A question the interviewer is likely to ask."),
+  answerAngle: z
+    .string()
+    .describe(
+      "How this candidate should approach the answer, grounded in their resume and the JD.",
+    ),
+});
+
+export const InterviewPrepSchema = z.object({
+  companyOverview: z
+    .string()
+    .describe(
+      "3-5 sentence overview of the company based on general knowledge. ALWAYS prefix with 'Based on general knowledge — verify on the company's site:' since there is no live web access.",
+    ),
+  roleFocus: z
+    .string()
+    .describe(
+      "2-4 sentences on what this specific interview will most likely focus on, inferred from the JD.",
+    ),
+  likelyQuestions: z
+    .array(InterviewQuestionSchema)
+    .min(4)
+    .max(10)
+    .describe("Likely interview questions with per-question answer angles."),
+  talkingPoints: z
+    .array(z.string())
+    .min(3)
+    .max(8)
+    .describe(
+      "Candidate strengths to proactively emphasize, grounded in the resume↔JD fit.",
+    ),
+  questionsToAsk: z
+    .array(z.string())
+    .min(3)
+    .max(6)
+    .describe("Thoughtful questions the candidate should ask the interviewer."),
+  prepChecklist: z
+    .array(z.string())
+    .min(3)
+    .max(6)
+    .describe("Concrete actions to take before the interview."),
+});
+
+export type InterviewPrepResponse = z.infer<typeof InterviewPrepSchema>;
+export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
