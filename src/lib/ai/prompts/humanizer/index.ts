@@ -1,24 +1,44 @@
-// CAREERFLOW: humanizer guidance — a vendored, email-tuned distillation of the
-// "humanizer" Claude Code skill (https://github.com/nbjiragale/humanizer, a fork
-// of https://github.com/blader/humanizer, MIT), which itself draws on
-// Wikipedia's "Signs of AI writing". The skill is a prompt collection, not a
-// runtime library, so we encode its ruleset here and append it to the draft
-// system prompts. Goal: drafts read like a real person wrote them, not like an
-// LLM. Used single-pass (in-prompt) by the reply-draft and follow-up-draft
-// generators.
+// CAREERFLOW: humanizer integration. Loads the ACTUAL vendored open-source
+// "humanizer" skill (vendor/humanizer/SKILL.md — github.com/nbjiragale/humanizer,
+// a fork of blader/humanizer, MIT, pinned in vendor/humanizer/SOURCE.md) and
+// injects its real content into the reply-draft and follow-up-draft system
+// prompts. This is the verbatim skill text, not a summary — the file is the
+// source of truth and is read at runtime.
+//
+// The skill itself is an interactive, multi-pass Claude Code skill. We use it
+// single-pass: its rules become a style reference inside one schema-bound draft
+// call, so we strip the YAML frontmatter and tell the model to apply the
+// principles to a short email and return only the final draft.
 
-export const HUMANIZER_GUIDANCE = `# Sound human, not AI-generated
+import "server-only";
 
-Write so a real person clearly wrote this, not a language model. Actively avoid the common "tells" of AI writing:
+import fs from "node:fs";
+import path from "node:path";
 
-Vocabulary — do NOT use these AI-favorite words/phrases: delve, leverage, foster, crucial, pivotal, landscape, interplay, realm, tapestry, navigate (figuratively), robust, seamless, underscore, testament, "stands as", "serves as", "a testament to", "in today's fast-paced world", "when it comes to", "that being said". Say "is/are", not "serves as" or "stands as".
+function loadVendoredSkill(): string {
+  const skillPath = path.join(
+    process.cwd(),
+    "vendor",
+    "humanizer",
+    "SKILL.md",
+  );
+  const raw = fs.readFileSync(skillPath, "utf8");
+  // Drop the YAML frontmatter (name/version/allowed-tools/etc.) — metadata, not
+  // writing guidance. Everything after it is kept verbatim.
+  return raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "").trim();
+}
 
-Structure & rhythm — vary sentence length; mix short and long. Do not force everything into groups of three. Do not cycle synonyms to seem varied. Avoid negative parallelism ("not only X but also Y", "it's not just X, it's Y") and tailing negations. Avoid false ranges ("from X to Y") that pair unrelated things.
+// The verbatim body of the vendored SKILL.md (frontmatter removed).
+export const HUMANIZER_SKILL = loadVendoredSkill();
 
-Punctuation & formatting — go easy on em dashes; use them rarely if at all. Use straight quotes and apostrophes, never curly ones. No emojis. No bold, no headings, no bullet lists in an email body unless explicitly asked.
+// The block appended to the draft system prompts. Frames the verbatim skill for
+// our single-pass, schema-bound email use.
+export const HUMANIZER_GUIDANCE = `# Humanize this email (open-source "humanizer" skill, MIT)
 
-Hedging & filler — no disclaimers, no knowledge-cutoff or "as an AI" mentions, no over-hedging ("it may be worth considering perhaps"). Cut signposting ("let's dive in"). Cut generic windups and windups-as-conclusions.
+Apply the humanization guide below so the email reads as human-written, not AI-generated. It was written for general prose — adapt it to a short email: ignore patterns about article headings, sections, and long-form structure, but strictly avoid the AI vocabulary, copula avoidance, rule-of-three, negative parallelism, em-dash overuse, hedging, promotional language, and chatbot artifacts it describes.
 
-Tone — no promotional adjectives ("exciting opportunity", "thrilled", "vibrant", "passionate about"). No sycophancy or servility. No chatbot artifacts ("I hope this helps", "I hope this email finds you well", "Feel free to reach out", "Let me know if you need anything else"). No vague attributions ("experts say").
+IMPORTANT: Do not output an analysis, multiple drafts, before/after comparisons, or the guide's interactive "what makes this AI" steps. Produce only the final email, matching the required schema.
 
-Do instead — get to the point, use concrete specifics over abstractions, use natural contractions (I'm, I'd, it's), and let one or two sentences carry a real, specific thought. Read it back: if a line could appear in any candidate's email unchanged, make it more specific or cut it.`;
+--- BEGIN HUMANIZER GUIDE ---
+${HUMANIZER_SKILL}
+--- END HUMANIZER GUIDE ---`;

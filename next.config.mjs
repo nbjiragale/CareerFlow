@@ -2,6 +2,12 @@
 const nextConfig = {
   output: "standalone",
   devIndicators: false,
+  // CAREERFLOW: the draft generators read vendor/humanizer/SKILL.md at runtime
+  // (see src/lib/ai/prompts/humanizer). Force the standalone build to include
+  // the vendored skill so it's present in production, not just in dev.
+  outputFileTracingIncludes: {
+    "/api/drafts/**": ["./vendor/humanizer/**"],
+  },
   async headers() {
     return [
       {
