@@ -513,3 +513,60 @@ export const getActiveApplicationsCount = async (
     where: { userId, Status: { value: { notIn: INACTIVE_STAGES } } },
   });
 };
+
+// CAREERFLOW: proactive follow-up nudge. Surfaces applications still in the
+// "applied" stage that the user applied to FOLLOW_UP_AFTER_DAYS+ ago and hasn't
+// followed up on recently (no follow-up draft in that window). Computed only —
+// no LLM call here; the draft is generated on demand from the dashboard.
+const FOLLOW_UP_AFTER_DAYS = 7;
+
+export interface FollowUpDue {
+  id: string;
+  company: string;
+  role: string;
+  appliedDate: Date | null;
+  daysSince: number;
+}
+
+export const getFollowUpsDue = async (
+  userId: string,
+): Promise<FollowUpDue[]> => {
+  if (!userId) return [];
+  const cutoff = subDays(new Date(), FOLLOW_UP_AFTER_DAYS);
+
+  const jobs = await prisma.job.findMany({
+    where: {
+      userId,
+      Status: { value: "applied" },
+      OR: [
+        { appliedDate: { lte: cutoff } },
+        { appliedDate: null, createdAt: { lte: cutoff } },
+      ],
+      // Skip anything already nudged within the window so we don't nag.
+      AiDraft: {
+        none: { draftType: "follow-up", createdAt: { gte: cutoff } },
+      },
+    },
+    select: {
+      id: true,
+      appliedDate: true,
+      createdAt: true,
+      JobTitle: { select: { label: true } },
+      Company: { select: { label: true } },
+    },
+    orderBy: [{ appliedDate: "asc" }, { createdAt: "asc" }],
+    take: 10,
+  });
+
+  const now = Date.now();
+  return jobs.map((j) => {
+    const ref = j.appliedDate ?? j.createdAt;
+    return {
+      id: j.id,
+      company: j.Company?.label ?? "",
+      role: j.JobTitle?.label ?? "Untitled role",
+      appliedDate: j.appliedDate ?? null,
+      daysSince: Math.floor((now - ref.getTime()) / (1000 * 60 * 60 * 24)),
+    };
+  });
+};

@@ -2,6 +2,7 @@ import {
   getActiveApplicationsCount,
   getActivityCalendarData,
   getActivityDataForPeriod,
+  getFollowUpsDue,
   getFunnelForUser,
   getJobsActivityForPeriod,
   getJobsAppliedForPeriod,
@@ -14,6 +15,7 @@ import { format } from "date-fns";
 import { Download, Sparkles } from "lucide-react";
 
 import ActivityCalendar from "@/components/dashboard/ActivityCalendar";
+import FollowUpsDue from "@/components/dashboard/FollowUpsDue";
 import RecentCardToggle from "@/components/dashboard/RecentCardToggle";
 import WeeklyBarChartToggle from "@/components/dashboard/WeeklyBarChartToggle";
 // CAREERFLOW: Phase 3 (PR #9) — analytics tiles.
@@ -55,6 +57,7 @@ export default async function Dashboard() {
     responseRate,
     usage,
     activeCount,
+    followUpsDue,
   ] = await Promise.all([
     getJobsAppliedForPeriod(30),
     getRecentJobs(),
@@ -66,6 +69,7 @@ export default async function Dashboard() {
     getResponseRateForUser(userId),
     getUsageSummary(userId, 30),
     getActiveApplicationsCount(userId),
+    getFollowUpsDue(userId),
   ]);
 
   const interviewCount = funnel.find((s) => s.stage === "interview")?.count ?? 0;
@@ -141,6 +145,9 @@ export default async function Dashboard() {
         <StatCard label="In interview" value={interviewCount} />
         <StatCard label="Response rate" value={`${rate30}%`} />
       </div>
+
+      {/* proactive follow-up nudge */}
+      <FollowUpsDue items={followUpsDue} />
 
       {/* weekly activity */}
       <WeeklyBarChartToggle
