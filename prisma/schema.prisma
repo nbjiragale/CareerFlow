@@ -359,6 +359,11 @@ model Job {
   evaluationJson  String?
   evaluatedAt     DateTime?
 
+  // CAREERFLOW: Interview Copilot — cached prep brief (InterviewPrepSchema as a
+  // JSON-encoded string) generated on demand for interview-stage jobs.
+  interviewPrepJson  String?
+  interviewPreppedAt DateTime?
+
   // CAREERFLOW: Phase 2 — AI-generated reply drafts linked to this Job.
   AiDraft AiDraft[]
 
