@@ -643,3 +643,121 @@ export const clearMockJobsAction = async (): Promise<any> => {
     return handleError(error, "Failed to clear mock jobs");
   }
 };
+
+// ---------------------------------------------------------------------------
+// Mock email threads — lets developers test the AI reply draft feature without
+// a real Gmail connection. Each thread is linked to a mock job when available.
+// ---------------------------------------------------------------------------
+
+const MOCK_THREAD_SUBJECTS = [
+  "Your application for Software Engineer at Acme Corp",
+  "Interview invitation — Senior Developer at TechCo",
+  "Following up on your application — Data Scientist at ML Labs",
+  "We'd love to connect — Frontend Engineer at StartupXYZ",
+  "Application received — Full Stack Developer at BigCorp",
+];
+
+const MOCK_THREAD_SNIPPETS = [
+  "Thank you for applying. We'd like to schedule a call to discuss your background...",
+  "We were impressed by your profile. Please select a time for a technical interview...",
+  "Your application is under review. We will follow up within 5 business days...",
+  "Hi, I came across your profile and think you'd be a great fit for our team...",
+  "We have received your application and will be in touch shortly...",
+];
+
+const MOCK_THREAD_SENDERS = [
+  "recruiter@acmecorp.com",
+  "hr@techco.io",
+  "talent@mllabs.ai",
+  "hiring@startupxyz.com",
+  "jobs@bigcorp.com",
+];
+
+const MOCK_THREAD_LABELS = [
+  "Applied",
+  "Interview",
+  "Applied",
+  "Applied",
+  "Applied",
+];
+
+export const generateMockEmailThreadsAction = async (): Promise<any> => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Not authenticated");
+
+    if (process.env.NODE_ENV !== "development") {
+      throw new Error(
+        "Mock data generation is only available in development mode",
+      );
+    }
+
+    // Find existing mock jobs to link threads to
+    const mockJobs = await prisma.job.findMany({
+      where: {
+        userId: user.id,
+        description: { contains: MOCK_DATA_IDENTIFIER },
+      },
+      select: { id: true },
+      take: MOCK_THREAD_SUBJECTS.length,
+    });
+
+    const created = await Promise.all(
+      MOCK_THREAD_SUBJECTS.map(async (subject, i) => {
+        const gmailThreadId = `mock-thread-${Date.now()}-${i}`;
+        const gmailMessageId = `mock-msg-${Date.now()}-${i}`;
+        const jobId = mockJobs[i]?.id ?? null;
+
+        return prisma.emailThread.create({
+          data: {
+            userId: user.id,
+            gmailThreadId,
+            gmailMessageId,
+            jobId,
+            label: MOCK_THREAD_LABELS[i],
+            confidence: 0.92,
+            needsReview: false,
+            subject,
+            snippet: MOCK_THREAD_SNIPPETS[i],
+            fromAddress: MOCK_THREAD_SENDERS[i],
+            receivedAt: subDays(new Date(), getRandomInt(1, 14)),
+          },
+        });
+      }),
+    );
+
+    return {
+      success: true,
+      message: `Generated ${created.length} mock email threads${mockJobs.length > 0 ? ` linked to ${Math.min(mockJobs.length, created.length)} mock jobs` : " (generate mock jobs first to link threads to applications)"}.`,
+    };
+  } catch (error) {
+    return handleError(error, "Failed to generate mock email threads");
+  }
+};
+
+export const clearMockEmailThreadsAction = async (): Promise<any> => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Not authenticated");
+
+    if (process.env.NODE_ENV !== "development") {
+      throw new Error(
+        "Mock data clearing is only available in development mode",
+      );
+    }
+
+    const deleted = await prisma.emailThread.deleteMany({
+      where: {
+        userId: user.id,
+        gmailThreadId: { startsWith: "mock-thread-" },
+      },
+    });
+
+    return {
+      success: true,
+      message: `Deleted ${deleted.count} mock email threads.`,
+    };
+  } catch (error) {
+    return handleError(error, "Failed to clear mock email threads");
+  }
+};

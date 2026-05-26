@@ -17,7 +17,14 @@ export async function GET() {
 
   const data = await collectUserExport(userId);
   if (!data) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Session token references a userId that no longer exists in the database
+    // (e.g. after a database reset). Return 401 so the client treats it as an
+    // auth failure and redirects to sign-in rather than showing a confusing
+    // "User not found" error page.
+    return NextResponse.json(
+      { error: "Session invalid. Please sign in again." },
+      { status: 401 },
+    );
   }
 
   const filename = `careerflow-export-${new Date().toISOString().slice(0, 10)}.json`;

@@ -16,6 +16,8 @@ import {
   clearMockProfileDataAction,
   generateMockJobsAction,
   clearMockJobsAction,
+  generateMockEmailThreadsAction,
+  clearMockEmailThreadsAction,
 } from "@/actions/mock.actions";
 
 type StatusMessage = { type: "success" | "error"; text: string };
@@ -324,6 +326,104 @@ export function MockJobsCard() {
             >
               {isClearing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isClearing ? "Clearing..." : "Clear Mock Jobs"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function MockEmailThreadsCard() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [message, setMessage] = useState<StatusMessage | null>(null);
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    setMessage(null);
+    const result = await generateMockEmailThreadsAction();
+    setMessage({
+      type: result.success ? "success" : "error",
+      text:
+        result.message ||
+        (result.success
+          ? "Mock email threads generated successfully"
+          : "Failed to generate mock email threads"),
+    });
+    setIsGenerating(false);
+  };
+
+  const handleClear = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to delete all mock email threads? This action cannot be undone.",
+      )
+    )
+      return;
+
+    setIsClearing(true);
+    setMessage(null);
+    const result = await clearMockEmailThreadsAction();
+    setMessage({
+      type: result.success ? "success" : "error",
+      text:
+        result.message ||
+        (result.success
+          ? "Mock email threads cleared successfully"
+          : "Failed to clear mock email threads"),
+    });
+    setIsClearing(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      {message && <StatusBanner message={message} />}
+      <Card>
+        <CardHeader>
+          <CardTitle>Mock Email Threads</CardTitle>
+          <CardDescription>
+            Generate mock Gmail threads to test the AI reply draft feature
+            without a real Gmail connection
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="font-semibold mb-2">Generate Mock Email Threads</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Creates 5 mock email threads (recruiter outreach, interview
+              invitations, application confirmations) and links them to mock
+              jobs when available. Use these to test AI reply drafts in the
+              Gmail section. Generate mock jobs first for linked context.
+            </p>
+            <Button
+              onClick={handleGenerate}
+              disabled={isGenerating || isClearing}
+              className="w-full"
+            >
+              {isGenerating && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isGenerating
+                ? "Generating..."
+                : "Generate Mock Email Threads"}
+            </Button>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-2">Clear Mock Email Threads</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Deletes mock email threads (identified by their mock gmailThreadId
+              prefix). Real synced threads are not affected.
+            </p>
+            <Button
+              onClick={handleClear}
+              disabled={isClearing || isGenerating}
+              variant="destructive"
+              className="w-full"
+            >
+              {isClearing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isClearing ? "Clearing..." : "Clear Mock Email Threads"}
             </Button>
           </div>
         </CardContent>
