@@ -1,44 +1,35 @@
+// CAREERFLOW: thin wrapper that loads the PDF download button client-only. The
+// actual @react-pdf usage lives in ResumePdfDownloadInner, dynamically imported
+// with ssr:false so the ESM-only @react-pdf/renderer never enters the server
+// build.
 "use client";
 
 import dynamic from "next/dynamic";
 import { Resume } from "@/models/profile.model";
-import { ResumePdf } from "./ResumePdf";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
-const PDFDownloadLink = dynamic(
-  () => import("@react-pdf/renderer").then((m) => m.PDFDownloadLink),
-  { ssr: false },
+const ResumePdfDownloadInner = dynamic(
+  () => import("./ResumePdfDownloadInner"),
+  {
+    ssr: false,
+    loading: () => (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-8 gap-1.5"
+        disabled
+      >
+        <Download className="h-3.5 w-3.5" />
+        Download PDF
+      </Button>
+    ),
+  },
 );
 
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 export function DownloadResumePdfButton({ resume }: { resume: Resume }) {
-  const fileName = `${slugify(resume.title || "resume")}.pdf`;
-  return (
-    <PDFDownloadLink
-      document={<ResumePdf resume={resume} />}
-      fileName={fileName}
-    >
-      {({ loading }) => (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 gap-1.5"
-          disabled={loading}
-        >
-          <Download className="h-3.5 w-3.5" />
-          {loading ? "Building PDF…" : "Download PDF"}
-        </Button>
-      )}
-    </PDFDownloadLink>
-  );
+  return <ResumePdfDownloadInner resume={resume} />;
 }
 
 export default DownloadResumePdfButton;
