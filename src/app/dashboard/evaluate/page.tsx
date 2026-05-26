@@ -16,11 +16,12 @@ export default function EvaluatePage() {
           AI Tools
         </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          Evaluate JD
+          Evaluate &amp; Tailor
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste a job description and grade it against your configured AI
-          provider — with a tailored customization plan.
+          Paste a job description to grade it — or run Match &amp; Tailor to turn
+          it into a tracked application, scored against a base resume with a
+          tailored version generated in one step.
         </p>
       </header>
       <EvaluatePanel />
