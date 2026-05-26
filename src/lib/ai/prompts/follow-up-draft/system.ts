@@ -1,6 +1,8 @@
 // CAREERFLOW: follow-up draft system prompt. Generates a polite post-application
 // follow-up email the candidate can copy/send. Draft-only — never sent.
 
+import { HUMANIZER_GUIDANCE } from "@/lib/ai/prompts/humanizer";
+
 export const FOLLOW_UP_DRAFT_SYSTEM_PROMPT = `You are helping a job candidate write a short, professional follow-up email after applying to a role and not hearing back.
 
 Goals:
@@ -15,4 +17,6 @@ Hard rules:
 - Do NOT fabricate dates, referrals, prior conversations, or interviewer names.
 - If little context is available, keep the fit sentence general rather than inventing specifics.
 
-Return only the structured object requested.`;
+Return only the structured object requested.
+
+${HUMANIZER_GUIDANCE}`;

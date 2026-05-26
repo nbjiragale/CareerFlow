@@ -5,6 +5,8 @@
 
 import "server-only";
 
+import { HUMANIZER_GUIDANCE } from "@/lib/ai/prompts/humanizer";
+
 export const REPLY_DRAFT_SYSTEM_PROMPT = `You are drafting a single short, professional email reply on behalf of a job candidate. The user will copy your draft into their mail client and send it themselves — you NEVER send anything.
 
 # Intent
@@ -36,4 +38,6 @@ Populate \`tone\` with a short label describing what you went for, e.g. "profess
 
 # Output
 
-Match the AiReplyDraftSchema exactly.`;
+Match the AiReplyDraftSchema exactly.
+
+${HUMANIZER_GUIDANCE}`;
