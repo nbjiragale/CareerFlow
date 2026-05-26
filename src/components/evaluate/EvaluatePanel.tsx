@@ -1,19 +1,36 @@
 // CAREERFLOW: Phase 2 — top-level Evaluate panel. JD textarea + archetype
 // picker + Evaluate button + result card.
 // CAREERFLOW: redesign (PR D) — card restyle, sample JD loader, clear control.
+// CAREERFLOW: Match & Tailor — grew this panel into the one-shot
+// evaluate → match → tailor flow. "Evaluate only" keeps the original
+// no-side-effect grading; "Match & Tailor" auto-creates a tracked application,
+// scores the chosen base resume, and generates a tailored version.
 "use client";
 
-import { useState } from "react";
-import { FileText, Loader2, Sparkles, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FileText, Loader2, Sparkles, Wand2, X } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { toast } from "../ui/use-toast";
 
 import { ArchetypePicker, type ArchetypePickerValue } from "./ArchetypePicker";
 import EvaluationCard from "./EvaluationCard";
+import MatchTailorResult, {
+  type MatchTailorResultData,
+} from "./MatchTailorResult";
 import type { JdEvaluationResponse } from "@/models/ai.schemas";
+import { getResumeList } from "@/actions/profile.actions";
 
 interface EvaluateResponse {
   evaluation: JdEvaluationResponse;
@@ -22,6 +39,11 @@ interface EvaluateResponse {
   costUsd: number;
   warning?: string;
   msElapsed: number;
+}
+
+interface ResumeOption {
+  id: string;
+  title: string;
 }
 
 // CAREERFLOW: redesign (PR D) — a self-contained sample so the empty state is
@@ -43,13 +65,52 @@ What we're looking for
 - Production experience with Kubernetes, Terraform, and AWS or GCP.
 - Bonus: vector databases, retrieval pipelines, or LLMOps tooling.`;
 
+function structuredOutputToast() {
+  toast({
+    variant: "destructive",
+    title: "This model can't return structured output",
+    description:
+      "Switch to a stronger model in Settings → AI Provider (e.g. openai/gpt-4o-mini or anthropic/claude-3.5-sonnet) and try again.",
+  });
+}
+
 export default function EvaluatePanel() {
   const [jdText, setJdText] = useState("");
   const [archetype, setArchetype] = useState<ArchetypePickerValue>(
     "auto-detect",
   );
-  const [loading, setLoading] = useState(false);
+  const [company, setCompany] = useState("");
+  const [role, setRole] = useState("");
+  const [resumes, setResumes] = useState<ResumeOption[]>([]);
+  const [baseResumeId, setBaseResumeId] = useState<string>();
+
+  const [loading, setLoading] = useState<"none" | "evaluate" | "match-tailor">(
+    "none",
+  );
   const [result, setResult] = useState<EvaluateResponse | null>(null);
+  const [matchTailor, setMatchTailor] = useState<MatchTailorResultData | null>(
+    null,
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getResumeList(1, 100);
+        if (res?.data?.length) {
+          setResumes(
+            res.data.map((r: { id: string; title: string }) => ({
+              id: r.id,
+              title: r.title,
+            })),
+          );
+        }
+      } catch {
+        // Non-fatal: the picker just stays empty and Match & Tailor is disabled.
+      }
+    })();
+  }, []);
+
+  const busy = loading !== "none";
 
   const onEvaluate = async () => {
     if (jdText.trim().length < 20) {
@@ -60,30 +121,19 @@ export default function EvaluatePanel() {
       });
       return;
     }
-    setLoading(true);
+    setLoading("evaluate");
     setResult(null);
+    setMatchTailor(null);
     try {
       const res = await fetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jdText,
-          archetypeHint: archetype,
-        }),
+        body: JSON.stringify({ jdText, archetypeHint: archetype }),
       });
       const data = await res.json();
       if (!res.ok) {
-        // CAREERFLOW: when the selected provider/model can't handle the
-        // JdEvaluationSchema, the server returns a 422 with
-        // code="structured_output_unsupported". Show a more actionable
-        // toast pointing the user at a known-good model.
         if (data.code === "structured_output_unsupported") {
-          toast({
-            variant: "destructive",
-            title: "This model can't return structured output",
-            description:
-              "Switch to a stronger model in Settings → AI Provider (e.g. openai/gpt-4o-mini or anthropic/claude-3.5-sonnet) and try again.",
-          });
+          structuredOutputToast();
           return;
         }
         toast({
@@ -95,10 +145,7 @@ export default function EvaluatePanel() {
       }
       setResult(data);
       if (data.warning) {
-        toast({
-          title: "Heads up",
-          description: data.warning,
-        });
+        toast({ title: "Heads up", description: data.warning });
       }
     } catch (err) {
       toast({
@@ -107,7 +154,72 @@ export default function EvaluatePanel() {
         description: err instanceof Error ? err.message : "Unknown error",
       });
     } finally {
-      setLoading(false);
+      setLoading("none");
+    }
+  };
+
+  const onMatchTailor = async () => {
+    if (jdText.trim().length < 20) {
+      toast({
+        variant: "destructive",
+        title: "JD too short",
+        description: "Paste a full job description (at least 20 characters).",
+      });
+      return;
+    }
+    if (!company.trim() || !role.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Company and role required",
+        description: "These name the application Match & Tailor will create.",
+      });
+      return;
+    }
+    if (!baseResumeId) {
+      toast({
+        variant: "destructive",
+        title: "Pick a base resume",
+        description: "Match & Tailor scores and tailors from a base resume.",
+      });
+      return;
+    }
+    setLoading("match-tailor");
+    setResult(null);
+    setMatchTailor(null);
+    try {
+      const res = await fetch("/api/match-tailor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jdText,
+          company,
+          role,
+          baseResumeId,
+          archetypeHint: archetype,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.code === "structured_output_unsupported") {
+          structuredOutputToast();
+          return;
+        }
+        toast({
+          variant: "destructive",
+          title: "Match & Tailor failed",
+          description: data.error ?? `HTTP ${res.status}`,
+        });
+        return;
+      }
+      setMatchTailor(data);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Match & Tailor failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setLoading("none");
     }
   };
 
@@ -121,7 +233,7 @@ export default function EvaluatePanel() {
               <ArchetypePicker
                 value={archetype}
                 onChange={setArchetype}
-                disabled={loading}
+                disabled={busy}
               />
             </div>
             <Button
@@ -129,7 +241,7 @@ export default function EvaluatePanel() {
               size="sm"
               className="h-9 gap-1.5"
               onClick={() => setJdText(SAMPLE_JD)}
-              disabled={loading}
+              disabled={busy}
             >
               <FileText className="h-3.5 w-3.5" /> Load sample JD
             </Button>
@@ -145,7 +257,7 @@ export default function EvaluatePanel() {
               placeholder="Paste the full JD here…"
               value={jdText}
               onChange={(e) => setJdText(e.target.value)}
-              disabled={loading}
+              disabled={busy}
             />
             <div className="flex items-center justify-between">
               <span className="text-xs tabular-nums text-muted-foreground">
@@ -155,7 +267,7 @@ export default function EvaluatePanel() {
                 <button
                   type="button"
                   onClick={() => setJdText("")}
-                  disabled={loading}
+                  disabled={busy}
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
                 >
                   <X className="h-3 w-3" /> Clear
@@ -164,20 +276,84 @@ export default function EvaluatePanel() {
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button onClick={onEvaluate} disabled={loading}>
-              {loading ? (
+          {/* CAREERFLOW: Match & Tailor inputs — turn the JD into a tracked
+              application scored + tailored against a base resume. */}
+          <div className="grid gap-3 rounded-md border border-dashed border-input p-3 sm:grid-cols-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="mt-company" className="text-xs text-muted-foreground">
+                Company
+              </Label>
+              <Input
+                id="mt-company"
+                placeholder="e.g. Acme"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                disabled={busy}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="mt-role" className="text-xs text-muted-foreground">
+                Role
+              </Label>
+              <Input
+                id="mt-role"
+                placeholder="e.g. Senior Backend Engineer"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                disabled={busy}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs text-muted-foreground">Base resume</Label>
+              <Select
+                value={baseResumeId}
+                onValueChange={setBaseResumeId}
+                disabled={busy || resumes.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      resumes.length === 0 ? "No resumes yet" : "Select a resume"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {resumes.map((r) => (
+                      <SelectItem key={r.id} value={r.id} className="capitalize">
+                        {r.title}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={onEvaluate} disabled={busy}>
+              {loading === "evaluate" ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Sparkles className="mr-2 h-4 w-4" />
               )}
-              Evaluate
+              Evaluate only
+            </Button>
+            <Button onClick={onMatchTailor} disabled={busy}>
+              {loading === "match-tailor" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Wand2 className="mr-2 h-4 w-4" />
+              )}
+              Match &amp; Tailor
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {result && (
+      {matchTailor && <MatchTailorResult data={matchTailor} />}
+
+      {result && !matchTailor && (
         <EvaluationCard
           evaluation={result.evaluation}
           provider={result.provider}
