@@ -112,12 +112,17 @@ model CoverLetter {
 }
 
 model File {
-  id         String   @id @default(uuid())
-  fileName   String
-  filePath   String
-  fileType   String
-  uploadedAt DateTime @default(now())
-  Resume     Resume?
+  id            String    @id @default(uuid())
+  fileName      String
+  filePath      String
+  fileType      String
+  uploadedAt    DateTime  @default(now())
+  // CAREERFLOW: extracted plain text from the uploaded file (PDF/DOCX), so AI
+  // features (review, match) work on uploaded resumes, not just structured ones.
+  // Populated at upload time; lazily backfilled on read for pre-existing files.
+  extractedText String?
+  extractedAt   DateTime?
+  Resume        Resume?
 }
 
 model ResumeSection {

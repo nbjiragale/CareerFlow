@@ -12,9 +12,9 @@ import {
   JobMatchSchema,
   JOB_MATCH_SYSTEM_PROMPT,
   buildJobMatchPrompt,
-  preprocessResume,
   preprocessJob,
 } from "@/lib/ai";
+import { preprocessResumeWithFile } from "@/lib/ai/resume-text";
 import type { JobMatchResponse } from "@/models/ai.schemas";
 import { getResumeById } from "@/actions/profile.actions";
 import { getJobDetails } from "@/actions/job.actions";
@@ -58,7 +58,7 @@ export async function runJobMatch(
     ]);
 
     const [resumePre, jobPre] = await Promise.all([
-      preprocessResume(resume),
+      preprocessResumeWithFile(resume),
       preprocessJob(job),
     ]);
 

@@ -9,11 +9,11 @@ import {
   JOB_MATCH_SYSTEM_PROMPT,
   buildJobMatchPrompt,
   AIUnavailableError,
-  preprocessResume,
   preprocessJob,
   structuredObjectToResponse,
   StructuredOutputUnsupportedError,
 } from "@/lib/ai";
+import { preprocessResumeWithFile } from "@/lib/ai/resume-text";
 import { getResumeById } from "@/actions/profile.actions";
 import { getJobDetails } from "@/actions/job.actions";
 import { AiModel } from "@/models/ai.model";
@@ -64,7 +64,7 @@ export const POST = async (req: NextRequest) => {
 
     // Preprocess both resume and job description
     const [resumePreprocessResult, jobPreprocessResult] = await Promise.all([
-      preprocessResume(resume),
+      preprocessResumeWithFile(resume),
       preprocessJob(job),
     ]);
 

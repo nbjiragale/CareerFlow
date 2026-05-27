@@ -427,7 +427,7 @@ export async function runResumeTailor(
       source.sections.experience.experiences.length === 0
     ) {
       throw new Error(
-        "Source resume has no experiences to tailor. Add at least one experience first.",
+        "Tailoring needs a structured resume with work experience to rewrite. This resume has no structured experience (an uploaded file can't be tailored) — add experience sections, or build a structured resume first.",
       );
     }
 

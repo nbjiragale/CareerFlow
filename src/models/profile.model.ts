@@ -21,6 +21,8 @@ export interface File {
   filePath: string;
   fileType: string;
   uploadedAt?: Date;
+  extractedText?: string | null;
+  extractedAt?: Date | null;
   Resume?: Resume;
 }
 

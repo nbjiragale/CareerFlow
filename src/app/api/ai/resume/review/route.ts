@@ -9,11 +9,11 @@ import {
   RESUME_REVIEW_SYSTEM_PROMPT,
   buildResumeReviewPrompt,
   AIUnavailableError,
-  preprocessResume,
   structuredObjectToResponse,
   StructuredOutputUnsupportedError,
 } from "@/lib/ai";
-import { Resume } from "@/models/profile.model";
+import { preprocessResumeWithFile } from "@/lib/ai/resume-text";
+import { getResumeById } from "@/actions/profile.actions";
 import { AiModel } from "@/models/ai.model";
 
 /**
@@ -41,20 +41,25 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
-  const { selectedModel, resume } = (await req.json()) as {
+  const { selectedModel, resumeId } = (await req.json()) as {
     selectedModel: AiModel;
-    resume: Resume;
+    resumeId: string;
   };
 
-  if (!resume || !selectedModel) {
+  if (!resumeId || !selectedModel) {
     return NextResponse.json(
-      { error: "Resume and model selection required" },
+      { error: "Resume ID and model selection required" },
       { status: 400 },
     );
   }
 
   try {
-    const preprocessResult = await preprocessResume(resume);
+    const { data: resume } = await getResumeById(resumeId);
+    if (!resume) {
+      return NextResponse.json({ error: "Resume not found" }, { status: 404 });
+    }
+
+    const preprocessResult = await preprocessResumeWithFile(resume);
     if (!preprocessResult.success) {
       return NextResponse.json(
         {

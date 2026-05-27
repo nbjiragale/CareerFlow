@@ -73,17 +73,24 @@ const AiResumeReviewSection = ({ resume }: AiSectionProps) => {
     },
   });
 
+  // A resume is reviewable if it has structured sections OR an uploaded file
+  // (whose text the server extracts). Only a truly empty resume is blocked.
+  const hasUploadedFile = Boolean(resume.FileId || resume.File);
+  const hasReviewableContent =
+    (resume.ResumeSections?.length ?? 0) > 0 || hasUploadedFile;
+
   const getResumeReview = () => {
-    if (!resume || resume.ResumeSections?.length === 0) {
+    if (!resume?.id || !hasReviewableContent) {
       toast({
         variant: "destructive",
         title: "Error!",
-        description: "Resume content is required",
+        description:
+          "Add resume sections or upload a resume file before requesting a review.",
       });
       return;
     }
 
-    submit({ selectedModel, resume });
+    submit({ selectedModel, resumeId: resume.id });
   };
 
   const triggerSheetChange = async (openState: boolean) => {
@@ -121,7 +128,7 @@ const AiResumeReviewSection = ({ resume }: AiSectionProps) => {
             variant="outline"
             className="h-8 gap-1 cursor-pointer"
             onClick={() => triggerSheetChange(true)}
-            disabled={isLoading || isLoadingSettings || resume.ResumeSections?.length! < 2}
+            disabled={isLoading || isLoadingSettings || !hasReviewableContent}
           >
             <Sparkles className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

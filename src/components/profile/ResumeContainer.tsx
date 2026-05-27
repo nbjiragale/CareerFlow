@@ -1,6 +1,7 @@
 "use client";
 import { Resume, ResumeSection, SectionType } from "@/models/profile.model";
 import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Badge } from "../ui/badge";
 import AddResumeSection, { AddResumeSectionRef } from "./AddResumeSection";
 import ContactInfoCard from "./ContactInfoCard";
 import { useRef, useState } from "react";
@@ -19,6 +20,11 @@ function ResumeContainer({ resume }: { resume: Resume }) {
   const resumeSectionRef = useRef<AddResumeSectionRef>(null);
   const [showPreview, setShowPreview] = useState(true);
   const { title, ContactInfo, ResumeSections } = resume ?? {};
+  // CAREERFLOW: a resume is either structured (editable sections) or an uploaded
+  // file (PDF/DOCX whose text AI features read). Surface which mode it's in so
+  // the AI/section actions aren't confusing.
+  const hasSections = (ResumeSections?.length ?? 0) > 0;
+  const isUploadedFile = !hasSections && Boolean(resume?.FileId);
   const summarySection = ResumeSections?.find(
     (section) => section.sectionType === SectionType.SUMMARY,
   );
@@ -70,7 +76,22 @@ function ResumeContainer({ resume }: { resume: Resume }) {
     <>
       <Card>
         <CardHeader className="flex-row justify-between items-center">
-          <CardTitle>Resume</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Resume
+            <Badge
+              variant="secondary"
+              className="font-normal"
+              title={
+                isUploadedFile
+                  ? "AI reads the text extracted from your uploaded file. Add sections to make it editable, or to enable tailoring."
+                  : hasSections
+                    ? "Built from editable sections; supports AI review, match, and tailoring."
+                    : "Empty — add sections or upload a file."
+              }
+            >
+              {hasSections ? "Structured" : isUploadedFile ? "Uploaded file" : "Empty"}
+            </Badge>
+          </CardTitle>
           <CardDescription>
             {resume.FileId && resume.File?.filePath
               ? DownloadFileButton(

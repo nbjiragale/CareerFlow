@@ -9,6 +9,7 @@ import { AddSummarySectionFormSchema } from "@/models/addSummaryForm.schema";
 import { CreateResumeFormSchema } from "@/models/createResumeForm.schema";
 import { ResumeSection, SectionType, Summary } from "@/models/profile.model";
 import { getCurrentUser } from "@/utils/user.utils";
+import { extractTextFromFile } from "@/lib/files/extract-text";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -256,11 +257,20 @@ const createFileEntry = async (
   fileName: string | undefined,
   filePath: string | undefined,
 ) => {
+  // CAREERFLOW: extract text at upload so AI features (review/match) work on
+  // uploaded resumes. extractedAt marks the attempt so text-less files (scanned
+  // PDFs, legacy .doc) aren't reparsed on every read.
+  const extracted = filePath
+    ? await extractTextFromFile(filePath, fileName)
+    : "";
+
   const newFileEntry = await prisma.file.create({
     data: {
       fileName: fileName!,
       filePath: filePath!,
       fileType: "resume",
+      extractedText: extracted || null,
+      extractedAt: new Date(),
     },
   });
   return newFileEntry.id;
