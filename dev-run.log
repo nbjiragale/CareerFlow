@@ -1,0 +1,248 @@
+
+> jobsync@1.1.11 dev
+> next dev --turbopack -p 3737
+
+   ▲ Next.js 15.5.15 (Turbopack)
+   - Local:        http://localhost:3737
+   - Network:      http://10.158.187.95:3737
+   - Environments: .env
+
+ ✓ Starting...
+ ○ Compiling instrumentation Node.js ...
+ ✓ Compiled instrumentation Node.js in 3.4s
+ ✓ Compiled instrumentation Edge in 29ms
+ ✓ Compiled middleware in 347ms
+[Scheduler] Starting with schedule: */15 * * * *
+[Scheduler] Starting reminder cron with schedule: * * * * *
+[Scheduler] Started successfully
+ ✓ Ready in 7.2s
+ ○ Compiling / ...
+ ✓ Compiled / in 3.7s
+ GET / 307 in 4157ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] Checking for due automations at 2026-05-27T03:45:00.031Z
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] Found 1 automation(s) to run
+[Scheduler] Running automation: Java developer
+[Automation 39b2a364-d45d-4ad6-b525-79761cb6cb08] Starting automation run
+[Logger] Starting run for automation 39b2a364-d45d-4ad6-b525-79761cb6cb08
+[Logger] Logged [info] for 39b2a364-d45d-4ad6-b525-79761cb6cb08: Automation run started (total logs: 1)
+[Logger] Log store initialized with 1 logs
+[Automation 39b2a364-d45d-4ad6-b525-79761cb6cb08] Created run with ID: 39520c01-a9e4-497a-83ea-25c9b7454382
+[Logger] Logged [info] for 39b2a364-d45d-4ad6-b525-79761cb6cb08: Created automation run with ID: 39520c01-a9e4-497a-83ea-25c9b7454382 (total logs: 2)
+[Logger] Logged [info] for 39b2a364-d45d-4ad6-b525-79761cb6cb08: Fetching resume data... (total logs: 3)
+[Logger] Logged [success] for 39b2a364-d45d-4ad6-b525-79761cb6cb08: Resume loaded: Java dev (total logs: 4)
+[Logger] Logged [info] for 39b2a364-d45d-4ad6-b525-79761cb6cb08: Searching for jobs: "Java, Spring boot" in Bangalore (total logs: 5)
+[Logger] Logged [error] for 39b2a364-d45d-4ad6-b525-79761cb6cb08: Search failed: blocked - API access denied - check your RapidAPI key (total logs: 6)
+[Logger] Logged [info] for 39b2a364-d45d-4ad6-b525-79761cb6cb08: Automation run completed (total logs: 7)
+[Scheduler] Automation Java developer completed: blocked, saved 0 jobs
+[Scheduler] Checking for users with Gmail connected
+[Scheduler] Running Gmail sync for 1 user(s)
+[Scheduler] Gmail sync for 2f523882-2dbe-4b34-928d-825e25eb8885 ok: fetched=15, needsReview=0, jobsCreated=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 568ms
+ ○ Compiling /signin ...
+ ✓ Compiled /signin in 2.3s
+ GET /signin 200 in 3216ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 637ms
+ GET /signin 200 in 657ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 495ms
+ GET /signin 200 in 512ms
+ POST /signin 200 in 484ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 147ms
+ GET /signin 200 in 141ms
+ POST /signin 200 in 529ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1739ms
+ GET /dashboard 200 in 2049ms
+ POST /dashboard 200 in 279ms
+ ○ Compiling /dashboard/evaluate ...
+ POST /dashboard 200 in 221ms
+ ✓ Compiled /dashboard/evaluate in 1282ms
+ GET /api/reminders/stream 200 in 1611ms
+ GET /dashboard/evaluate 200 in 1900ms
+ POST /dashboard/evaluate 200 in 138ms
+ POST /dashboard/evaluate 200 in 125ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /api/reminders/stream 200 in 62303ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 184ms
+ GET /signin 200 in 137ms
+ POST /signin 200 in 449ms
+ GET /dashboard 200 in 262ms
+ ⨯ [Error: aborted]
+ GET /dashboard/evaluate 200 in 416ms
+ ⨯ [Error: aborted] { code: 'ECONNRESET', digest: '1052313065' }
+ ○ Compiling /_error ...
+ POST /dashboard/evaluate 200 in 166ms
+ POST /dashboard/evaluate 200 in 164ms
+ ✓ Compiled /_error in 1450ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /api/reminders/stream 200 in 59519ms
+ GET / 307 in 138ms
+ GET /signin 200 in 145ms
+ POST /signin 200 in 333ms
+ GET /dashboard 200 in 268ms
+ ⨯ [Error: aborted]
+ GET /dashboard/evaluate 200 in 424ms
+ ⨯ [Error: aborted] { code: 'ECONNRESET', digest: '1052313065' }
+ POST /dashboard/evaluate 200 in 127ms
+ POST /dashboard/evaluate 200 in 119ms
+ ✓ Compiled /api/evaluate in 484ms
+ POST /api/evaluate 500 in 1692ms
+ GET /api/reminders/stream 200 in 6049ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] Checking for due automations at 2026-05-27T04:00:00.025Z
+[Scheduler] No automations due to run
+[Scheduler] Checking for users with Gmail connected
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] Running Gmail sync for 1 user(s)
+[Scheduler] Gmail sync for 2f523882-2dbe-4b34-928d-825e25eb8885 ok: fetched=0, needsReview=0, jobsCreated=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 525ms
+ GET /dashboard 200 in 1748ms
+ POST /dashboard 200 in 495ms
+ ○ Compiling /dashboard/settings ...
+ ✓ Compiled /dashboard/settings in 1789ms
+ GET /dashboard/settings 200 in 2066ms
+ POST /dashboard/settings 200 in 338ms
+ POST /dashboard/settings 200 in 365ms
+ ○ Compiling /api/ai/openrouter/models ...
+ ✓ Compiled /api/ai/openrouter/models in 580ms
+ GET /api/ai/openrouter/models 200 in 1501ms
+ POST /dashboard/settings 200 in 411ms
+ ○ Compiling /api/ai/ollama/tags ...
+ POST /dashboard/settings 200 in 344ms
+ POST /dashboard/settings 200 in 370ms
+ ✓ Compiled /api/ai/ollama/tags in 1443ms
+ POST /dashboard/settings 200 in 383ms
+Error proxying Ollama tags: TypeError: fetch failed
+    at async GET (src\app\api\ai\ollama\tags\route.ts:13:22)
+  11 |
+  12 |     const baseUrl = await getOllamaBaseUrl();
+> 13 |     const response = await fetch(`${baseUrl}/api/tags`, {
+     |                      ^
+  14 |       signal: AbortSignal.timeout(5000),
+  15 |     });
+  16 | {
+  [cause]: [Error: getaddrinfo ENOTFOUND host.docker.internal] {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'host.docker.internal'
+  }
+}
+ GET /api/ai/ollama/tags 502 in 2604ms
+Error proxying Ollama tags: TypeError: fetch failed
+    at async GET (src\app\api\ai\ollama\tags\route.ts:13:22)
+  11 |
+  12 |     const baseUrl = await getOllamaBaseUrl();
+> 13 |     const response = await fetch(`${baseUrl}/api/tags`, {
+     |                      ^
+  14 |       signal: AbortSignal.timeout(5000),
+  15 |     });
+  16 | {
+  [cause]: [Error: getaddrinfo ENOTFOUND host.docker.internal] {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'host.docker.internal'
+  }
+}
+ GET /api/ai/ollama/tags 502 in 819ms
+ ○ Compiling /api/settings/api-keys/verify ...
+ ✓ Compiled /api/settings/api-keys/verify in 538ms
+ POST /api/settings/api-keys/verify 200 in 1711ms
+ POST /dashboard/settings 200 in 357ms
+ POST /dashboard/settings 200 in 355ms
+ ○ Compiling /dashboard/gmail ...
+ ✓ Compiled /dashboard/gmail in 1501ms
+ GET /dashboard/gmail 200 in 1740ms
+ ○ Compiling /api/gmail/status ...
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ ✓ Compiled /api/gmail/status in 5.4s
+ GET /api/gmail/status 200 in 9162ms
+ ✓ Compiled /api/gmail/threads in 490ms
+ GET /api/gmail/status 200 in 606ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 1018ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 507ms
+ ○ Compiling /api/drafts ...
+ ✓ Compiled /api/drafts in 1261ms
+ GET /api/drafts?emailThreadId=bdb1fe00-cbf2-4917-b7ef-330c659e11d1 200 in 1787ms
+ ○ Compiling /api/drafts/reply ...
+ ✓ Compiled /api/drafts/reply in 1040ms
+ POST /api/drafts/reply 200 in 17348ms
+ GET /dashboard/evaluate 200 in 358ms
+ POST /dashboard/evaluate 200 in 381ms
+ POST /dashboard/evaluate 200 in 332ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ POST /api/evaluate 200 in 13025ms
+ ○ Compiling /api/match-tailor ...
+ ✓ Compiled /api/match-tailor in 774ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ POST /api/match-tailor 200 in 11647ms
+ ○ Compiling /dashboard/profile ...
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ ✓ Compiled /dashboard/profile in 2.7s
+ GET /dashboard/profile 200 in 2976ms
+ POST /dashboard/profile 200 in 353ms
+ POST /dashboard/profile 200 in 327ms
+ POST /dashboard/profile 200 in 318ms
+ POST /dashboard/profile 200 in 318ms
+ ○ Compiling /dashboard/profile/resume/[id] ...
+ ✓ Compiled /dashboard/profile/resume/[id] in 5.3s
+ GET /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 6424ms
+ GET /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 567ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 391ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 309ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 302ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 350ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 508ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 308ms
+ GET /api/reminders/stream 200 in 226589ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 190ms
+ ⨯ [Error: aborted] { code: 'ECONNRESET', digest: '1052313065' }
+[2026-05-27T04:37:04.630Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:10:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.688Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:11:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.710Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:12:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.731Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:13:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.744Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:14:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.756Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:15:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.766Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:16:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.778Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:17:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.790Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:18:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.802Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:19:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.812Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:20:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.821Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:21:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.830Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:22:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.837Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:23:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.843Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:24:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.856Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:25:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.889Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:26:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.937Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:27:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:04.982Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:28:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.016Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:29:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.053Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:30:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.076Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:31:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.126Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:32:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.152Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:33:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.173Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:34:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.193Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:35:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.210Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:36:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.225Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:37:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.269Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:15:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-05-27T04:37:05.287Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:30:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0

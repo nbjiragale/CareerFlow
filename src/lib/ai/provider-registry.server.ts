@@ -38,7 +38,11 @@ export const PROVIDER_VERIFIERS: Record<
   },
 
   openrouter: async (key) => {
-    const res = await fetch("https://openrouter.ai/api/v1/models", {
+    // NOTE: do NOT verify against /api/v1/models — that endpoint is public and
+    // returns 200 for any (or no) Authorization header, so it can't tell a
+    // valid key from a revoked one. /api/v1/key is auth-gated and 401s on an
+    // invalid/revoked key (body: {"error":{"message":"User not found."}}).
+    const res = await fetch("https://openrouter.ai/api/v1/key", {
       headers: { Authorization: `Bearer ${key}` },
     });
     if (!res.ok)

@@ -342,12 +342,14 @@ describe("runJdEvaluation", () => {
       new (APICallError as any)("Incorrect API key", 401),
     );
 
+    // Auth errors are translated into an actionable AiCredentialError (still no
+    // schema-retry fallback), and the original provider text is preserved.
     await expect(
       runJdEvaluation({ userId: "u1", jdText: "JD text" }),
-    ).rejects.toThrow("Incorrect API key");
+    ).rejects.toThrow(/invalid, revoked, or unauthorized/);
     expect(generateTextMock).not.toHaveBeenCalled();
     expect(createAudit.mock.calls[0][0].data.status).toBe("error");
-    expect(createAudit.mock.calls[0][0].data.errorMessage).toBe(
+    expect(createAudit.mock.calls[0][0].data.errorMessage).toContain(
       "Incorrect API key",
     );
   });

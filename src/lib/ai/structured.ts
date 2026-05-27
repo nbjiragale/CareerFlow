@@ -50,6 +50,28 @@ export class StructuredOutputUnsupportedError extends Error {
   }
 }
 
+// Raised when the provider rejects the request as unauthorized (401/403).
+// Without this, the raw provider text bubbles up (e.g. OpenRouter answers a
+// revoked key with "User not found."), which gives the user no clue it's an
+// API-key problem. We translate it into an actionable message instead.
+export class AiCredentialError extends Error {
+  constructor(providerMessage?: string) {
+    super(
+      "Your AI provider rejected the request — the API key is invalid, revoked, " +
+        "or unauthorized. Open Settings → AI Provider and re-enter a valid key." +
+        (providerMessage ? ` (provider said: ${providerMessage})` : ""),
+    );
+    this.name = "AiCredentialError";
+  }
+}
+
+function isAuthError(err: unknown): boolean {
+  return (
+    APICallError.isInstance(err) &&
+    (err.statusCode === 401 || err.statusCode === 403)
+  );
+}
+
 const DEFAULT_RETRY_HINT =
   "Try a model that supports structured/JSON output (e.g. openai/gpt-4o-mini, anthropic/claude-3.5-sonnet).";
 
@@ -96,6 +118,11 @@ export async function generateStructuredObject<T extends z.ZodTypeAny>(
       usedFallback: false,
     };
   } catch (err) {
+    if (isAuthError(err)) {
+      throw new AiCredentialError(
+        APICallError.isInstance(err) ? err.message : undefined,
+      );
+    }
     if (!NoObjectGeneratedError.isInstance(err) && !isSchemaRejection(err)) {
       throw err;
     }

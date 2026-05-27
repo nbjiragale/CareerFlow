@@ -21,7 +21,7 @@ describe("PROVIDER_VERIFIERS – openrouter", () => {
 
     expect(result).toEqual({ success: true });
     expect(global.fetch).toHaveBeenCalledWith(
-      "https://openrouter.ai/api/v1/models",
+      "https://openrouter.ai/api/v1/key",
       { headers: { Authorization: "Bearer sk-or-valid" } },
     );
   });
