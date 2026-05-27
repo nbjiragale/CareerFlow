@@ -25,6 +25,7 @@ import { GmailNotConnectedError, getAuthorizedGmail } from "@/lib/gmail/client";
 import { extractEmailBody } from "@/lib/gmail/body";
 import { generateStructuredObject } from "./structured";
 import { recordAiUsage } from "./audit";
+import { resolveUserAiSettings } from "./resolve-settings";
 
 export interface GenerateReplyDraftArgs {
   userId: string;
@@ -42,36 +43,6 @@ export interface GenerateReplyDraftResult {
   warning?: string;
   bodyWasAvailable: boolean;
   msElapsed: number;
-}
-
-interface ResolvedAiSettings {
-  provider: ProviderType;
-  model: string;
-}
-
-async function resolveAiSettings(
-  userId: string,
-): Promise<ResolvedAiSettings> {
-  const row = await db.userSettings.findUnique({ where: { userId } });
-  if (!row) {
-    throw new Error(
-      "AI settings not configured. Pick a provider and model in Settings \u2192 AI Provider first.",
-    );
-  }
-  let parsed: { ai?: { provider?: string; model?: string } };
-  try {
-    parsed = JSON.parse(row.settings);
-  } catch {
-    throw new Error("UserSettings JSON is corrupt; cannot resolve AI provider.");
-  }
-  const provider = parsed.ai?.provider as ProviderType | undefined;
-  const model = parsed.ai?.model;
-  if (!provider || !model) {
-    throw new Error(
-      "AI provider/model not selected. Pick one in Settings \u2192 AI Provider.",
-    );
-  }
-  return { provider, model };
 }
 
 /**
@@ -135,7 +106,7 @@ export async function generateReplyDraft(
       }
     : null;
 
-  const { provider, model } = await resolveAiSettings(userId);
+  const { provider, model } = await resolveUserAiSettings(userId);
   const startedAt = Date.now();
 
   try {

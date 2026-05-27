@@ -18,6 +18,7 @@ import {
 } from "@/models/ai.schemas";
 import { generateStructuredObject } from "./structured";
 import { recordAiUsage } from "./audit";
+import { resolveUserAiSettings } from "./resolve-settings";
 
 export interface RunJdEvaluationArgs {
   userId: string;
@@ -38,36 +39,6 @@ export interface RunJdEvaluationResult {
   costUsd: number;
   warning?: string;
   msElapsed: number;
-}
-
-interface ResolvedAiSettings {
-  provider: ProviderType;
-  model: string;
-}
-
-async function resolveAiSettings(
-  userId: string,
-): Promise<ResolvedAiSettings> {
-  const row = await db.userSettings.findUnique({ where: { userId } });
-  if (!row) {
-    throw new Error(
-      "AI settings not configured. Pick a provider and model in Settings \u2192 AI Provider first.",
-    );
-  }
-  let parsed: { ai?: { provider?: string; model?: string } };
-  try {
-    parsed = JSON.parse(row.settings);
-  } catch {
-    throw new Error("UserSettings JSON is corrupt; cannot resolve AI provider.");
-  }
-  const provider = parsed.ai?.provider as ProviderType | undefined;
-  const model = parsed.ai?.model;
-  if (!provider || !model) {
-    throw new Error(
-      "AI provider/model not selected. Pick one in Settings \u2192 AI Provider.",
-    );
-  }
-  return { provider, model };
 }
 
 function gradeFromScore(globalScore: number): "A" | "B" | "C" | "D" | "F" {
@@ -92,7 +63,7 @@ export async function runJdEvaluation(
     throw new Error("jdText is required.");
   }
 
-  const { provider, model } = await resolveAiSettings(userId);
+  const { provider, model } = await resolveUserAiSettings(userId);
   const startedAt = Date.now();
 
   try {

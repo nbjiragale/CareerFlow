@@ -16,6 +16,16 @@ export interface ResolvedAiSettings {
 export async function resolveUserAiSettings(
   userId: string,
 ): Promise<ResolvedAiSettings> {
+  // Verify the user exists. A valid JWT can reference a userId that was deleted
+  // (or a DB that was reset) — catch this early with a clear message rather
+  // than letting the caller see "AI settings not configured" for a phantom user.
+  const user = await db.user.findUnique({ where: { id: userId }, select: { id: true } });
+  if (!user) {
+    throw new Error(
+      "Session invalid. Please sign out and sign back in.",
+    );
+  }
+
   const row = await db.userSettings.findUnique({ where: { userId } });
   if (!row) {
     throw new Error(

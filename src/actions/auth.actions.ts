@@ -58,6 +58,22 @@ export async function signup(formData: {
     });
   }
 
+  // Create default UserSettings so AI settings resolver finds a row on first use.
+  // Provider is ollama (local, no key required) with no model selected — the
+  // user will be prompted to pick one in Settings → AI Provider before the first
+  // AI call, but the row existing prevents the harder-to-diagnose
+  // "AI settings not configured" error path.
+  await prisma.userSettings.create({
+    data: {
+      userId: newUser.id,
+      settings: JSON.stringify({
+        ai: { provider: "ollama", model: undefined },
+        display: { theme: "system", density: "comfortable" },
+        notifications: { browserEnabled: true, emailEnabled: false, defaultLeadMinutes: 60 },
+      }),
+    },
+  });
+
   return { success: true };
 }
 
