@@ -1,0 +1,162 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - link "C CareerFlow Beta" [ref=e4] [cursor=pointer]:
+      - /url: /dashboard
+      - generic [ref=e5]: C
+      - generic [ref=e6]: CareerFlow
+      - generic [ref=e7]: Beta
+    - generic [ref=e8]:
+      - img [ref=e9]
+      - generic [ref=e12]: Search applications…
+      - generic [ref=e13]: ⌘K
+    - navigation [ref=e14]:
+      - generic [ref=e15]:
+        - link "Dashboard" [ref=e16] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e17]
+          - generic [ref=e22]: Dashboard
+        - link "Applications 34" [ref=e23] [cursor=pointer]:
+          - /url: /dashboard/myjobs
+          - img [ref=e24]
+          - generic [ref=e28]: Applications
+          - generic [ref=e29]: "34"
+        - link "Inbox 1" [ref=e30] [cursor=pointer]:
+          - /url: /dashboard/gmail
+          - img [ref=e31]
+          - generic [ref=e34]: Inbox
+          - generic [ref=e35]: "1"
+      - generic [ref=e36]:
+        - generic [ref=e37]: AI Tools
+        - link "Evaluate JD" [ref=e38] [cursor=pointer]:
+          - /url: /dashboard/evaluate
+          - img [ref=e39]
+          - generic [ref=e41]: Evaluate JD
+        - link "Resumes" [ref=e42] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - img [ref=e43]
+          - generic [ref=e46]: Resumes
+        - link "Reminders" [ref=e47] [cursor=pointer]:
+          - /url: /dashboard/tasks
+          - img [ref=e48]
+          - generic [ref=e51]: Reminders
+      - generic [ref=e52]:
+        - generic [ref=e53]: More
+        - link "Automations" [ref=e54] [cursor=pointer]:
+          - /url: /dashboard/automations
+          - img [ref=e55]
+          - generic [ref=e57]: Automations
+        - link "Activities" [ref=e58] [cursor=pointer]:
+          - /url: /dashboard/activities
+          - img [ref=e59]
+          - generic [ref=e63]: Activities
+        - link "Question Bank" [ref=e64] [cursor=pointer]:
+          - /url: /dashboard/questions
+          - img [ref=e65]
+          - generic [ref=e67]: Question Bank
+        - link "Administration" [ref=e68] [cursor=pointer]:
+          - /url: /dashboard/admin
+          - img [ref=e69]
+          - generic [ref=e71]: Administration
+        - link "Developer Options" [ref=e72] [cursor=pointer]:
+          - /url: /dashboard/developer
+          - img [ref=e73]
+          - generic [ref=e75]: Developer Options
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - generic [ref=e79]: Connected
+          - generic [ref=e81]: Gmail
+        - generic [ref=e82]:
+          - generic [ref=e83]: AI · anthropic/claude-3.5-haiku
+          - generic [ref=e84]: $0.06
+      - link "Settings" [ref=e85] [cursor=pointer]:
+        - /url: /dashboard/settings
+        - img [ref=e86]
+        - text: Settings
+  - generic [ref=e89]:
+    - banner [ref=e90]:
+      - generic [ref=e92]: Resumes
+      - generic [ref=e93]:
+        - button "Sync Gmail" [ref=e94] [cursor=pointer]:
+          - img [ref=e95]
+          - text: Sync Gmail
+        - link "Reminders" [ref=e100] [cursor=pointer]:
+          - /url: /dashboard/tasks
+          - img [ref=e101]
+        - button "Toggle theme" [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+        - link "Add" [ref=e107] [cursor=pointer]:
+          - /url: /dashboard/myjobs
+          - img [ref=e108]
+          - text: Add
+        - button "Account menu" [ref=e109] [cursor=pointer]: "N"
+    - main [ref=e110]:
+      - generic [ref=e111]:
+        - generic [ref=e113]:
+          - heading "Resume" [level=3] [ref=e114]
+          - paragraph [ref=e115]: "[MOCK_DATA] John Doe - Full Stack Developer"
+          - generic [ref=e116]:
+            - button "Hide preview" [ref=e117] [cursor=pointer]:
+              - img
+              - text: Hide preview
+            - button "Download PDF" [disabled]:
+              - img
+              - text: Download PDF
+            - button "Add Section" [ref=e118] [cursor=pointer]:
+              - img
+              - generic [ref=e119]: Add Section
+            - generic [ref=e120]:
+              - button "Review" [disabled]:
+                - img
+                - generic: Review
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - heading "John Doe" [level=3] [ref=e124]
+            - paragraph [ref=e125]: Full Stack Developer
+            - paragraph [ref=e126]: john.doe@mockmail.com - 555-100-0001 - 123 Main St, Seattle, WA
+          - button "Edit" [ref=e127] [cursor=pointer]:
+            - img
+            - generic [ref=e128]: Edit
+        - generic [ref=e130]:
+          - heading "Summary" [level=3] [ref=e131]
+          - button "Edit" [ref=e132] [cursor=pointer]:
+            - img
+            - generic [ref=e133]: Edit
+        - heading "Work Experience" [level=3] [ref=e135]
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - heading "Full Stack Developer" [level=3] [ref=e138]
+            - button "Edit" [ref=e139] [cursor=pointer]:
+              - img
+              - generic [ref=e140]: Edit
+          - generic [ref=e141]:
+            - heading "Amazon" [level=3] [ref=e142]
+            - paragraph [ref=e143]:
+              - text: May 2024 - Present
+              - text: Seattle, WA
+        - generic [ref=e145]:
+          - generic [ref=e146]:
+            - heading "Software Engineer" [level=3] [ref=e147]
+            - button "Edit" [ref=e148] [cursor=pointer]:
+              - img
+              - generic [ref=e149]: Edit
+          - generic [ref=e150]:
+            - heading "Netflix" [level=3] [ref=e151]
+            - paragraph [ref=e152]:
+              - text: May 2021 - May 2024
+              - text: Los Angeles, CA
+        - heading "Education" [level=3] [ref=e154]
+        - generic [ref=e155]:
+          - generic [ref=e156]:
+            - heading "University of Washington" [level=3] [ref=e157]
+            - button "Edit" [ref=e158] [cursor=pointer]:
+              - img
+              - generic [ref=e159]: Edit
+          - generic [ref=e160]:
+            - heading "Bachelor of Science, Computer Science" [level=3] [ref=e161]
+            - paragraph [ref=e162]:
+              - text: Aug 2016 - Apr 2020
+              - text: Seattle, WA
+        - img [ref=e164]
+    - region "Notifications (F8)":
+      - list

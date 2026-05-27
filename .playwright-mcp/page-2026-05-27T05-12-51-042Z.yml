@@ -1,0 +1,182 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e178] [cursor=pointer]:
+    - button "Open issues overlay" [ref=e179]:
+      - img [ref=e181]
+      - generic [ref=e183]:
+        - generic [ref=e184]: "0"
+        - generic [ref=e185]: "1"
+      - generic [ref=e186]: Issue
+    - button "Collapse issues badge" [ref=e187]:
+      - img [ref=e188]
+  - generic [ref=e190]:
+    - complementary [ref=e191]:
+      - link "C CareerFlow Beta" [ref=e192] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=e193]: C
+        - generic [ref=e194]: CareerFlow
+        - generic [ref=e195]: Beta
+      - generic [ref=e196]:
+        - img [ref=e197]
+        - generic [ref=e200]: Search applications…
+        - generic [ref=e201]: ⌘K
+      - navigation [ref=e202]:
+        - generic [ref=e203]:
+          - link "Dashboard" [ref=e204] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e205]
+            - generic [ref=e210]: Dashboard
+          - link "Applications 34" [ref=e211] [cursor=pointer]:
+            - /url: /dashboard/myjobs
+            - img [ref=e212]
+            - generic [ref=e216]: Applications
+            - generic [ref=e217]: "34"
+          - link "Inbox 1" [ref=e218] [cursor=pointer]:
+            - /url: /dashboard/gmail
+            - img [ref=e219]
+            - generic [ref=e222]: Inbox
+            - generic [ref=e223]: "1"
+        - generic [ref=e224]:
+          - generic [ref=e225]: AI Tools
+          - link "Evaluate JD" [ref=e226] [cursor=pointer]:
+            - /url: /dashboard/evaluate
+            - img [ref=e227]
+            - generic [ref=e229]: Evaluate JD
+          - link "Resumes" [ref=e230] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - img [ref=e231]
+            - generic [ref=e234]: Resumes
+          - link "Reminders" [ref=e235] [cursor=pointer]:
+            - /url: /dashboard/tasks
+            - img [ref=e236]
+            - generic [ref=e239]: Reminders
+        - generic [ref=e240]:
+          - generic [ref=e241]: More
+          - link "Automations" [ref=e242] [cursor=pointer]:
+            - /url: /dashboard/automations
+            - img [ref=e243]
+            - generic [ref=e245]: Automations
+          - link "Activities" [ref=e246] [cursor=pointer]:
+            - /url: /dashboard/activities
+            - img [ref=e247]
+            - generic [ref=e251]: Activities
+          - link "Question Bank" [ref=e252] [cursor=pointer]:
+            - /url: /dashboard/questions
+            - img [ref=e253]
+            - generic [ref=e255]: Question Bank
+          - link "Administration" [ref=e256] [cursor=pointer]:
+            - /url: /dashboard/admin
+            - img [ref=e257]
+            - generic [ref=e259]: Administration
+          - link "Developer Options" [ref=e260] [cursor=pointer]:
+            - /url: /dashboard/developer
+            - img [ref=e261]
+            - generic [ref=e263]: Developer Options
+      - generic [ref=e264]:
+        - generic [ref=e265]:
+          - generic [ref=e266]:
+            - generic [ref=e267]: Connected
+            - generic [ref=e269]: Gmail
+          - generic [ref=e270]:
+            - generic [ref=e271]: AI · anthropic/claude-3.5-haiku
+            - generic [ref=e272]: $0.06
+        - link "Settings" [ref=e273] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e274]
+          - text: Settings
+    - generic [ref=e277]:
+      - banner [ref=e278]:
+        - generic [ref=e280]: Resumes
+        - generic [ref=e281]:
+          - button "Sync Gmail" [ref=e282] [cursor=pointer]:
+            - img [ref=e283]
+            - text: Sync Gmail
+          - link "Reminders" [ref=e288] [cursor=pointer]:
+            - /url: /dashboard/tasks
+            - img [ref=e289]
+          - button "Toggle theme" [ref=e292] [cursor=pointer]:
+            - img [ref=e293]
+          - link "Add" [ref=e295] [cursor=pointer]:
+            - /url: /dashboard/myjobs
+            - img [ref=e296]
+            - text: Add
+          - button "Account menu" [ref=e297] [cursor=pointer]: "N"
+      - main [ref=e298]:
+        - generic [ref=e299]:
+          - generic [ref=e301]:
+            - heading "Resume" [level=3] [ref=e302]
+            - paragraph [ref=e303]: "[MOCK_DATA] John Doe - Full Stack Developer"
+            - generic [ref=e304]:
+              - button "Hide preview" [ref=e305] [cursor=pointer]:
+                - img
+                - text: Hide preview
+              - link "Download PDF" [ref=e306] [cursor=pointer]:
+                - /url: blob:http://localhost:3737/bd64e21a-f386-488c-9f4a-aa0cbc1569d8
+                - button "Download PDF" [ref=e307]:
+                  - img
+                  - text: Download PDF
+              - button "Add Section" [ref=e308] [cursor=pointer]:
+                - img
+                - generic [ref=e309]: Add Section
+              - button "Review" [ref=e311] [cursor=pointer]:
+                - img
+                - generic [ref=e312]: Review
+          - generic [ref=e314]:
+            - generic [ref=e315]:
+              - heading "John Doe" [level=3] [ref=e316]
+              - paragraph [ref=e317]: Full Stack Developer
+              - paragraph [ref=e318]: john.doe@mockmail.com - 555-100-0001 - 123 Main St, Seattle, WA
+            - button "Edit" [ref=e319] [cursor=pointer]:
+              - img
+              - generic [ref=e320]: Edit
+          - generic [ref=e321]:
+            - generic [ref=e322]:
+              - heading "Summary" [level=3] [ref=e323]
+              - button "Edit" [ref=e324] [cursor=pointer]:
+                - img
+                - generic [ref=e325]: Edit
+            - textbox [ref=e328]:
+              - paragraph [ref=e329]: Full Stack Developer with 5 years of experience designing and delivering end-to-end web applications across e-commerce and streaming domains. Proficient in React, Node.js, TypeScript, and AWS. Known for bridging product requirements and engineering execution, and for mentoring junior developers. Passionate about clean architecture, test-driven development, and performance optimization.
+          - heading "Work Experience" [level=3] [ref=e330]
+          - generic [ref=e331]:
+            - generic [ref=e332]:
+              - heading "Full Stack Developer" [level=3] [ref=e333]
+              - button "Edit" [ref=e334] [cursor=pointer]:
+                - img
+                - generic [ref=e335]: Edit
+            - generic [ref=e336]:
+              - heading "Amazon" [level=3] [ref=e337]
+              - paragraph [ref=e338]:
+                - text: May 2024 - Present
+                - text: Seattle, WA
+              - textbox [ref=e341]:
+                - paragraph [ref=e342]: Lead full-stack development for Amazon's Seller Central dashboard, serving 2M+ third-party sellers worldwide. Re-architected a legacy AngularJS inventory module to React + TypeScript, cutting load time by 40%. Designed and shipped three RESTful Node.js microservices integrated with DynamoDB and SQS, reducing order processing latency by 25%. Mentored two junior developers through code reviews and pair programming sessions. Collaborated with PMs and UX designers to translate Figma mockups into production-ready features. Maintained 90%+ unit/integration test coverage using Jest and Supertest.
+          - generic [ref=e343]:
+            - generic [ref=e344]:
+              - heading "Software Engineer" [level=3] [ref=e345]
+              - button "Edit" [ref=e346] [cursor=pointer]:
+                - img
+                - generic [ref=e347]: Edit
+            - generic [ref=e348]:
+              - heading "Netflix" [level=3] [ref=e349]
+              - paragraph [ref=e350]:
+                - text: May 2021 - May 2024
+                - text: Los Angeles, CA
+              - textbox [ref=e353]:
+                - paragraph [ref=e354]: Contributed to Netflix's content discovery platform, building React components for the browse and search experiences used by 200M+ subscribers. Developed a server-rendered personalization API in Node.js that improved recommendation click-through rate by 12% in A/B testing. Championed adoption of Storybook for component documentation, adopted team-wide. Participated in on-call rotations, resolving two SEV-1 incidents with root-cause analysis write-ups. Achieved 'Exceeds Expectations' in annual performance review.
+          - heading "Education" [level=3] [ref=e355]
+          - generic [ref=e356]:
+            - generic [ref=e357]:
+              - heading "University of Washington" [level=3] [ref=e358]
+              - button "Edit" [ref=e359] [cursor=pointer]:
+                - img
+                - generic [ref=e360]: Edit
+            - generic [ref=e361]:
+              - heading "Bachelor of Science, Computer Science" [level=3] [ref=e362]
+              - paragraph [ref=e363]:
+                - text: Sep 2016 - May 2020
+                - text: Seattle, WA
+          - iframe [ref=e365]:
+            
+      - region "Notifications (F8)":
+        - list
+  - alert [ref=e366]

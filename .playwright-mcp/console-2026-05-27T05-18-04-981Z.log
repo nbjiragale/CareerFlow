@@ -1,0 +1,76 @@
+[     595ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[     725ms] [LOG] [Fast Refresh] done in 242ms @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809
+[    1702ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:14537
+[    2104ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2104ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2118ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2119ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2126ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2127ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2295ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2296ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2302ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2303ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2306ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2307ms] [WARNING] Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches. @ http://localhost:3737/_next/static/chunks/node_modules_%40tiptap_658434b2._.js:1390
+[    2341ms] Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectErrorBoundary router={{...}}>
+      <InnerLayoutRouter url="/dashboard..." tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>
+        <SegmentViewNode type="page" pagePath="dashboard/...">
+          <SegmentTrieNode>
+          <ResumePage>
+            <div className="col-span-3">
+              <ResumeContainer resume={{id:"f70848...", ...}}>
+                <_c>
+                <ContactInfoCard>
+                <SummarySectionCard>
+                <ExperienceCard>
+                <EducationCard educationSection={{id:"8c6b37...", ...}} ...>
+                  <_c4>
+                  <_c>
+                    <div ref={null} className="rounded-lg...">
+                      <_c2>
+                      <_c8>
+                        <div ref={null} className="p-6 pt-0">
+                          <h3>
+                          <_c6>
+                            <p ref={null} className="text-sm te...">
++                             Sep 2016
+-                             Aug 2016
+                              ...
+                ...
+        ...
+      ...
+
+    at throwOnHydrationMismatch (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:2892:56)
+    at completeWork (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:6427:36)
+    at runWithFiberInDEV (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:886:74)
+    at completeUnitOfWork (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8363:23)
+    at performUnitOfWork (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8300:28)
+    at workLoopConcurrentByScheduler (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8294:58)
+    at renderRootConcurrent (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8276:71)
+    at performWorkOnRoot (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:7908:176)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8882:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3737/_next/static/chunks/node_modules_next_dist_compiled_5150ccfd._.js:2601:64)
+[    5908ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[    5911ms] [LOG] [Fast Refresh] done in 112ms @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809
+[   51686ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[   51687ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809
+[   57848ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[   58191ms] [LOG] [Fast Refresh] done in 448ms @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809
+[  171879ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[  171880ms] [LOG] [Fast Refresh] done in 103ms @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809
+[  181197ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[  181198ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3737/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809

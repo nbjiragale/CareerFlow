@@ -95,6 +95,13 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
     marginTop: 2,
   },
+  emptyState: {
+    fontSize: 10,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 24,
+    lineHeight: 1.4,
+  },
 });
 
 function stripHtml(html: string | undefined | null): string {
@@ -119,9 +126,19 @@ function paragraphsFrom(html: string | undefined | null): string[] {
     .filter((line) => line.length > 0);
 }
 
+// Guard every date format: real resume data (unlike seeded mock data) often has
+// empty or unparseable dates, and date-fns `format` throws "Invalid time value"
+// on an Invalid Date. An uncaught throw here aborts the whole <Document> render,
+// producing a blank PDF — so coerce bad dates to "" instead.
+function fmtDate(value?: Date | string | null): string {
+  if (!value) return "";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "" : format(d, "MMM yyyy");
+}
+
 function fmtRange(start?: Date | string | null, end?: Date | string | null) {
-  const s = start ? format(new Date(start), "MMM yyyy") : "";
-  const e = end ? format(new Date(end), "MMM yyyy") : start ? "Present" : "";
+  const s = fmtDate(start);
+  const e = fmtDate(end) || (start ? "Present" : "");
   return s && e ? `${s} – ${e}` : s || e || "";
 }
 
@@ -157,6 +174,14 @@ export function ResumePdf({ resume }: { resume: Resume }) {
     .filter(Boolean)
     .join("  •  ");
 
+  // A resume with only contact info renders as a near-blank header-only page,
+  // which reads as "the PDF didn't render." Show an explicit note instead.
+  const hasContent =
+    !!summary?.summary?.content ||
+    (experience?.workExperiences?.length ?? 0) > 0 ||
+    (education?.educations?.length ?? 0) > 0 ||
+    (certification?.licenseOrCertifications?.length ?? 0) > 0;
+
   return (
     <Document title={resume.title}>
       <Page size="LETTER" style={styles.page}>
@@ -176,6 +201,16 @@ export function ResumePdf({ resume }: { resume: Resume }) {
         ) : (
           <Text style={styles.headerName}>{resume.title}</Text>
         )}
+
+        {!hasContent ? (
+          <View>
+            <Text style={styles.emptyState}>
+              This resume has no sections yet. Use “Add Section” to add a
+              summary, work experience, education, or certifications, then
+              download or preview the PDF again.
+            </Text>
+          </View>
+        ) : null}
 
         {summary?.summary?.content ? (
           <View>
@@ -273,7 +308,7 @@ export function ResumePdf({ resume }: { resume: Resume }) {
                     ) : null}
                   </Text>
                   <Text style={styles.entryHeaderRight}>
-                    {cert.issueDate ? format(new Date(cert.issueDate), "MMM yyyy") : ""}
+                    {fmtDate(cert.issueDate)}
                   </Text>
                 </View>
                 <Text style={styles.entrySubLeft}>{cert.organization}</Text>

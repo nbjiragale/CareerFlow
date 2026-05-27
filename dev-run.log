@@ -246,3 +246,297 @@ Error proxying Ollama tags: TypeError: fetch failed
 [2026-05-27T04:37:05.269Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:15:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
 [2026-05-27T04:37:05.287Z] [PID: 11380] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Tue May 26 2026 22:30:00 GMT-0600 (Mountain Daylight Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
 [Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ ✓ Compiled in 849ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] Checking for due automations at 2026-05-27T04:45:00.023Z
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] No automations due to run
+[Scheduler] Checking for users with Gmail connected
+[Scheduler] Running Gmail sync for 1 user(s)
+[Scheduler] Gmail sync for 2f523882-2dbe-4b34-928d-825e25eb8885 ok: fetched=0, needsReview=0, jobsCreated=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 496ms
+ GET /dashboard 200 in 1012ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ POST /dashboard 200 in 427ms
+ GET /dashboard/profile 200 in 303ms
+ POST /dashboard/profile 200 in 354ms
+ POST /dashboard/profile 200 in 278ms
+ POST /dashboard/profile 200 in 283ms
+ POST /dashboard/profile 200 in 510ms
+ GET /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 1125ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 320ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 338ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 272ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 256ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 292ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 237ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 245ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 306ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 261ms
+ POST /dashboard/profile/resume/654a078b-da33-4cfa-8515-c6ae4373e5f2 200 in 254ms
+ POST /dashboard/profile 200 in 303ms
+ POST /dashboard/profile 200 in 270ms
+ POST /dashboard/profile 200 in 282ms
+ POST /dashboard/profile 200 in 301ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /dashboard/gmail 200 in 293ms
+ GET /api/gmail/status 200 in 627ms
+ GET /api/gmail/status 200 in 720ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 693ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 536ms
+ GET /api/gmail/threads?limit=25 200 in 513ms
+ GET /api/gmail/threads?limit=25 200 in 504ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /api/drafts?emailThreadId=12d8c185-7c8b-428f-98c7-39fc604a60f0 200 in 4852ms
+ POST /api/drafts/reply 200 in 19111ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 585ms
+ GET /dashboard 200 in 578ms
+ ○ Compiling /dashboard/myjobs ...
+ ✓ Compiled /dashboard/myjobs in 2.2s
+ GET /dashboard/myjobs 200 in 2694ms
+ POST /dashboard/myjobs 200 in 347ms
+ POST /dashboard/myjobs 200 in 305ms
+ POST /dashboard/myjobs 200 in 301ms
+ POST /dashboard/myjobs 200 in 385ms
+ ○ Compiling /dashboard/myjobs/[id] ...
+ ✓ Compiled /dashboard/myjobs/[id] in 2s
+ GET /dashboard/myjobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e 200 in 3197ms
+ ○ Compiling /api/jobs/[id]/timeline ...
+ POST /dashboard/myjobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e 200 in 539ms
+ ✓ Compiled /api/jobs/[id]/timeline in 770ms
+ POST /dashboard/myjobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e 200 in 375ms
+ POST /dashboard/myjobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e 200 in 338ms
+ POST /dashboard/myjobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e 200 in 285ms
+ POST /dashboard/myjobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e 200 in 270ms
+ GET /api/jobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e/timeline 200 in 2300ms
+ POST /dashboard/myjobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e 200 in 317ms
+ GET /api/jobs/3614959c-8cd8-431d-826e-6ca97cf6aa3e/timeline 200 in 731ms
+ ✓ Compiled /dashboard/settings in 166ms
+ GET /dashboard/settings 200 in 897ms
+ POST /dashboard/settings 200 in 385ms
+ POST /dashboard/settings 200 in 417ms
+ GET /api/ai/openrouter/models 200 in 1829ms
+ POST /dashboard/settings 200 in 384ms
+ GET /dashboard/evaluate 200 in 286ms
+ POST /dashboard/evaluate 200 in 374ms
+ POST /dashboard/evaluate 200 in 337ms
+[Scheduler] Checking for due automations at 2026-05-27T05:00:00.030Z
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] No automations due to run
+[Scheduler] Checking for users with Gmail connected
+[Scheduler] Running Gmail sync for 1 user(s)
+[Scheduler] Gmail sync for 2f523882-2dbe-4b34-928d-825e25eb8885 ok: fetched=0, needsReview=0, jobsCreated=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET / 307 in 455ms
+ ✓ Compiled /signin in 191ms
+ GET /signin 200 in 1796ms
+ ✓ Compiled /favicon.ico in 330ms
+ GET /favicon.ico?favicon.4bedc4f2.ico 200 in 779ms
+ POST /api/evaluate 200 in 39024ms
+ POST /signin 200 in 810ms
+ GET /dashboard 200 in 826ms
+ POST /dashboard 200 in 497ms
+ POST /dashboard 200 in 310ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+ GET /api/reminders/stream 200 in 121892ms
+ GET /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 2609ms
+ POST /api/match-tailor 200 in 45505ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 663ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 319ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 310ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 317ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 318ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 290ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 299ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 345ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 341ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 312ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 285ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 292ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /dashboard/profile 200 in 294ms
+ POST /dashboard/profile 200 in 380ms
+ POST /dashboard/profile 200 in 281ms
+ POST /dashboard/profile 200 in 334ms
+ POST /dashboard/profile 200 in 419ms
+ GET /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 369ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 307ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 284ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 307ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 313ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 300ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 361ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 315ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 281ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 329ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 271ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /dashboard/myjobs/14664536-163a-447a-b191-e07ce17eda9d 200 in 414ms
+ POST /dashboard/myjobs/14664536-163a-447a-b191-e07ce17eda9d 200 in 398ms
+ GET /api/jobs/14664536-163a-447a-b191-e07ce17eda9d/timeline 200 in 622ms
+ POST /dashboard/myjobs/14664536-163a-447a-b191-e07ce17eda9d 200 in 462ms
+ GET /api/jobs/14664536-163a-447a-b191-e07ce17eda9d/timeline 200 in 658ms
+ POST /dashboard/myjobs/14664536-163a-447a-b191-e07ce17eda9d 200 in 353ms
+ POST /dashboard/myjobs/14664536-163a-447a-b191-e07ce17eda9d 200 in 264ms
+ POST /dashboard/myjobs/14664536-163a-447a-b191-e07ce17eda9d 200 in 523ms
+ POST /dashboard/myjobs/14664536-163a-447a-b191-e07ce17eda9d 200 in 517ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+ GET /api/reminders/stream 200 in 321354ms
+ GET /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 1239ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 819ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 432ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 300ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 391ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 346ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 440ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 356ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 311ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 293ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 335ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 385ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 370ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /dashboard/gmail 200 in 299ms
+ GET /api/gmail/status 200 in 551ms
+ GET /api/gmail/status 200 in 637ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 619ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 482ms
+ ○ Compiling /api/gmail/sync ...
+ ✓ Compiled /api/gmail/sync in 1162ms
+ POST /api/gmail/sync 200 in 6096ms
+ GET /api/gmail/threads?limit=25 200 in 507ms
+ GET /api/gmail/threads?limit=25 200 in 543ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 544ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 495ms
+ GET /api/gmail/threads?limit=25 200 in 444ms
+ GET /api/gmail/threads?limit=25 200 in 476ms
+ GET /api/drafts?emailThreadId=1fff942d-f198-46e9-baad-4ba606d4a866 200 in 575ms
+ POST /api/drafts/reply 200 in 8628ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ POST /api/drafts/reply 200 in 10931ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /dashboard/profile 200 in 391ms
+ POST /dashboard/profile 200 in 405ms
+ POST /dashboard/profile 200 in 364ms
+ POST /dashboard/profile 200 in 374ms
+ POST /dashboard/profile 200 in 370ms
+ GET /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 395ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 312ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 320ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 346ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 317ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 290ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 360ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 327ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 299ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 318ms
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 330ms
+ ○ Compiling /api/profile/resume ...
+ ✓ Compiled /api/profile/resume in 666ms
+ GET /api/profile/resume?filePath=data%5Cfiles%5Cresumes%5CNiranjan_Java)Developer_2026-05-25T15-29-28.pdf 200 in 1294ms
+[Scheduler] Checking for due automations at 2026-05-27T05:15:00.034Z
+[Scheduler] No automations due to run
+[Scheduler] Checking for users with Gmail connected
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Scheduler] Running Gmail sync for 1 user(s)
+[Scheduler] Gmail sync for 2f523882-2dbe-4b34-928d-825e25eb8885 ok: fetched=0, needsReview=0, jobsCreated=0
+ POST /dashboard/profile/resume/6f82c0f8-bc30-4da4-8e45-67a432fdcdec 200 in 680ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+ GET /api/reminders/stream 200 in 536444ms
+ GET /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 1293ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 700ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 361ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 294ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 393ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 333ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 356ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 400ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 283ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 307ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 327ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 315ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 301ms
+ GET /dashboard/gmail 200 in 576ms
+ GET /api/gmail/status 200 in 792ms
+ GET /api/gmail/status 200 in 820ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 821ms
+ GET /api/gmail/threads?needsReview=true&limit=25 200 in 554ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ ○ Compiling /api/gmail/threads/[id]/correct ...
+ ✓ Compiled /api/gmail/threads/[id]/correct in 537ms
+ POST /api/gmail/threads/bdb1fe00-cbf2-4917-b7ef-330c659e11d1/correct 200 in 2127ms
+ GET /api/gmail/threads?limit=25 200 in 512ms
+ GET /api/gmail/threads?limit=25 200 in 629ms
+ GET /api/drafts?emailThreadId=1fff942d-f198-46e9-baad-4ba606d4a866 200 in 560ms
+ POST /api/drafts/reply 200 in 12223ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ GET /api/reminders/stream 200 in 225850ms
+ GET /dashboard/profile/resume/da9459c8-1d54-4085-8b11-bd3bc3d35be8 200 in 1181ms
+ POST /dashboard/profile/resume/da9459c8-1d54-4085-8b11-bd3bc3d35be8 200 in 700ms
+ POST /dashboard/profile/resume/da9459c8-1d54-4085-8b11-bd3bc3d35be8 200 in 276ms
+ POST /dashboard/profile/resume/da9459c8-1d54-4085-8b11-bd3bc3d35be8 200 in 279ms
+ POST /dashboard/profile/resume/da9459c8-1d54-4085-8b11-bd3bc3d35be8 200 in 299ms
+ POST /dashboard/profile/resume/da9459c8-1d54-4085-8b11-bd3bc3d35be8 200 in 294ms
+ POST /dashboard/profile/resume/da9459c8-1d54-4085-8b11-bd3bc3d35be8 200 in 279ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+Tiptap Error: SSR has been detected, please set `immediatelyRender` explicitly to `false` to avoid hydration mismatches.
+ GET /api/reminders/stream 200 in 55726ms
+ GET /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 1367ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 659ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 375ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 582ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 279ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 277ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 291ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 276ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 263ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 291ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 268ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 263ms
+ POST /dashboard/profile/resume/f70848c7-de08-4106-9cb6-73e87f120432 200 in 273ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ ✓ Compiled in 788ms
+ ✓ Compiled in 665ms
+ ✓ Compiled in 564ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
+ ✓ Compiled in 371ms
+ ✓ Compiled in 714ms
+[Reminders] tick: attempted=0 browser=0 email=0 skipped=0 failed=0
