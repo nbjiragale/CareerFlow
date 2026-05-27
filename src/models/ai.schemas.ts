@@ -379,6 +379,22 @@ export const AiReplyDraftSchema = z.object({
 export type AiReplyDraftResponse = z.infer<typeof AiReplyDraftSchema>;
 
 // ---------------------------------------------------------------------------
+// CAREERFLOW: Recruiter / LinkedIn outreach drafts. Used by
+// /api/drafts/outreach. Job-based (no email thread). The LLM output reuses
+// AiReplyDraftSchema — `subject` is only meaningful for the "inmail" intent,
+// `body` holds the message. Draft-only, never sent.
+// ---------------------------------------------------------------------------
+
+export const OUTREACH_INTENTS = [
+  "connection",
+  "inmail",
+  "referral",
+  "follow-up",
+] as const;
+export type OutreachIntent = (typeof OUTREACH_INTENTS)[number];
+export const OutreachIntentSchema = z.enum(OUTREACH_INTENTS);
+
+// ---------------------------------------------------------------------------
 // CAREERFLOW: Resume Tailor schema. The LLM receives the candidate's source
 // resume (preprocessed text) plus the JD, and returns a rewritten Summary +
 // per-experience descriptions keyed by the original experienceId. The server

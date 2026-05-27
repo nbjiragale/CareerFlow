@@ -1,13 +1,13 @@
-// CAREERFLOW: Phase 2 — GET /api/drafts?emailThreadId=...
-// Returns prior reply drafts for a thread (newest first), used by the
-// DraftReplyDrawer history list.
+// CAREERFLOW: Phase 2 — GET /api/drafts?emailThreadId=... | ?jobId=...
+// Returns prior drafts (newest first). emailThreadId powers the
+// DraftReplyDrawer history; jobId powers the OutreachDrawer history.
 
 import "server-only";
 
 import { NextResponse, type NextRequest } from "next/server";
 
 import { auth } from "@/auth";
-import { listDraftsForThread } from "@/lib/ai/drafts";
+import { listDraftsForThread, listDraftsForJob } from "@/lib/ai/drafts";
 
 export const GET = async (req: NextRequest) => {
   const session = await auth();
@@ -17,15 +17,18 @@ export const GET = async (req: NextRequest) => {
   }
 
   const emailThreadId = req.nextUrl.searchParams.get("emailThreadId");
-  if (!emailThreadId) {
+  const jobId = req.nextUrl.searchParams.get("jobId");
+  if (!emailThreadId && !jobId) {
     return NextResponse.json(
-      { error: "emailThreadId query parameter is required" },
+      { error: "emailThreadId or jobId query parameter is required" },
       { status: 400 },
     );
   }
 
   try {
-    const drafts = await listDraftsForThread(userId, emailThreadId);
+    const drafts = emailThreadId
+      ? await listDraftsForThread(userId, emailThreadId)
+      : await listDraftsForJob(userId, jobId!);
     return NextResponse.json({ drafts });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load drafts";
