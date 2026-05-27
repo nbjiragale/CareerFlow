@@ -9,7 +9,14 @@ export type AutomationRunStatus =
   | "blocked"
   | "rate_limited";
 export type DiscoveryStatus = "new" | "accepted" | "dismissed";
-export type JobBoard = "jsearch";
+export type JobBoard = "jsearch" | "remotive";
+
+// CAREERFLOW: human-readable board names for the wizard, automation list, and
+// run logs. Keep keys in sync with JobBoardSchema and the searchJobBoard switch.
+export const JOB_BOARD_LABELS: Record<JobBoard, string> = {
+  jsearch: "JSearch (Google Jobs)",
+  remotive: "Remotive (Remote jobs)",
+};
 
 export interface Automation {
   id: string;

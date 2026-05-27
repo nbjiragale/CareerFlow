@@ -34,7 +34,11 @@ import {
 import { CreateAutomationSchema, type CreateAutomationInput } from "@/models/automation.schema";
 import { createAutomation, updateAutomation } from "@/actions/automation.actions";
 import { toast } from "@/components/ui/use-toast";
-import type { AutomationWithResume } from "@/models/automation.model";
+import {
+  JOB_BOARD_LABELS,
+  type AutomationWithResume,
+  type JobBoard,
+} from "@/models/automation.model";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 interface Resume {
@@ -79,7 +83,7 @@ export function AutomationWizard({
     mode: "onChange",
     defaultValues: {
       name: editAutomation?.name ?? "",
-      jobBoard: (editAutomation?.jobBoard as "jsearch") ?? "jsearch",
+      jobBoard: (editAutomation?.jobBoard as JobBoard) ?? "jsearch",
       keywords: editAutomation?.keywords ?? "",
       location: editAutomation?.location ?? "",
       resumeId: editAutomation?.resumeId ?? "",
@@ -92,7 +96,7 @@ export function AutomationWizard({
     if (open) {
       form.reset({
         name: editAutomation?.name ?? "",
-        jobBoard: (editAutomation?.jobBoard as "jsearch") ?? "jsearch",
+        jobBoard: (editAutomation?.jobBoard as JobBoard) ?? "jsearch",
         keywords: editAutomation?.keywords ?? "",
         location: editAutomation?.location ?? "",
         resumeId: editAutomation?.resumeId ?? "",
@@ -214,11 +218,18 @@ export function AutomationWizard({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="jsearch">JSearch (Google Jobs)</SelectItem>
+                    {(
+                      Object.entries(JOB_BOARD_LABELS) as [JobBoard, string][]
+                    ).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  The job board to search (more coming soon)
+                  Where to search for new roles. Remotive is free; JSearch needs
+                  a RapidAPI key.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -370,7 +381,11 @@ export function AutomationWizard({
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Job Board</span>
-              <span className="font-medium capitalize">{formValues.jobBoard || "-"}</span>
+              <span className="font-medium">
+                {JOB_BOARD_LABELS[formValues.jobBoard as JobBoard] ??
+                  formValues.jobBoard ??
+                  "-"}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Keywords</span>

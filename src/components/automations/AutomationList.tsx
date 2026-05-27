@@ -34,7 +34,11 @@ import {
   AlertTriangle,
   Zap,
 } from "lucide-react";
-import type { AutomationWithResume } from "@/models/automation.model";
+import {
+  JOB_BOARD_LABELS,
+  type AutomationWithResume,
+  type JobBoard,
+} from "@/models/automation.model";
 import {
   deleteAutomation,
   pauseAutomation,
@@ -145,8 +149,9 @@ export function AutomationList({
                   >
                     {automation.name}
                   </Link>
-                  <Badge variant="outline" className="capitalize">
-                    {automation.jobBoard}
+                  <Badge variant="outline">
+                    {JOB_BOARD_LABELS[automation.jobBoard as JobBoard] ??
+                      automation.jobBoard}
                   </Badge>
                   <Badge
                     variant={automation.status === "active" ? "default" : "secondary"}

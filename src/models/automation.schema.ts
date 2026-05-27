@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const JobBoardSchema = z.enum(["jsearch"]);
+export const JobBoardSchema = z.enum(["jsearch", "remotive"]);
 
 export const AutomationStatusSchema = z.enum(["active", "paused"]);
 

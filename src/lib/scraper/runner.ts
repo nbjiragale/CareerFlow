@@ -1,13 +1,14 @@
 import { generateText, Output } from "ai";
 import db from "@/lib/db";
-import type {
-  Automation,
-  AutomationRunStatus,
-  ScrapedJobData,
-  JobBoard,
+import {
+  JOB_BOARD_LABELS,
+  type Automation,
+  type AutomationRunStatus,
+  type ScrapedJobData,
+  type JobBoard,
 } from "@/models/automation.model";
 import type { ScraperError, JobDetails } from "./types";
-import { searchJSearchJobs } from "./jsearch";
+import { searchJobBoard } from "./search";
 import { mapScrapedJobToJobRecord } from "./mapper";
 import { normalizeJobUrl } from "./utils";
 import { calculateNextRunAt } from "./schedule";
@@ -30,7 +31,6 @@ import {
   defaultUserSettings,
   type AiSettings,
 } from "@/models/userSettings.model";
-import { resolveApiKey } from "@/lib/api-key-resolver";
 
 const MAX_JOBS_PER_RUN = 10;
 
@@ -207,12 +207,13 @@ export async function runAutomation(
       `Searching for jobs: "${automation.keywords}" in ${automation.location}`,
     );
 
-    // Use JSearch API with user's key if available
-    const rapidApiKey = await resolveApiKey(automation.userId, "rapidapi");
-    const searchResult = await searchJSearchJobs(
+    const board = automation.jobBoard as JobBoard;
+    const boardLabel = JOB_BOARD_LABELS[board] ?? automation.jobBoard;
+    const searchResult = await searchJobBoard(
+      board,
       automation.keywords,
       automation.location,
-      rapidApiKey,
+      automation.userId,
     );
 
     if (!searchResult.success) {
@@ -247,7 +248,7 @@ export async function runAutomation(
     automationLogger.log(
       automation.id,
       "success",
-      `Found ${jobsSearched} jobs from JSearch API`,
+      `Found ${jobsSearched} jobs from ${boardLabel}`,
       { jobsSearched },
     );
 
@@ -305,7 +306,7 @@ export async function runAutomation(
 
     const aiSettings = await getUserAiSettings(automation.userId);
 
-    // JSearch returns full job details, no separate extraction needed
+    // Providers return full job details in search, so no separate extraction.
     for (const job of jobsToProcess) {
       automationLogger.log(
         automation.id,
