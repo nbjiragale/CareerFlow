@@ -29,9 +29,14 @@ function currentPermission(): PermissionState {
 
 export function useReminderStream(options?: {
   enabled?: boolean;
+  // Fires for every reminder received, regardless of how it's surfaced
+  // (native notification vs. in-app fallback). Use for badge counts etc.
+  onReminder?: (reminder: StreamedReminder) => void;
   onFallback?: (reminder: StreamedReminder) => void;
 }) {
   const enabled = options?.enabled ?? true;
+  const onReminderRef = useRef(options?.onReminder);
+  onReminderRef.current = options?.onReminder;
   const onFallbackRef = useRef(options?.onFallback);
   onFallbackRef.current = options?.onFallback;
 
@@ -56,6 +61,8 @@ export function useReminderStream(options?: {
       } catch {
         return;
       }
+
+      onReminderRef.current?.(reminder);
 
       const title = reminder.payload?.taskTitle ?? "CareerFlow reminder";
       const body = reminder.payload?.taskDescription ?? undefined;

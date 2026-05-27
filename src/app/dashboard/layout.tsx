@@ -3,8 +3,8 @@ import Topbar from "@/components/shell/Topbar";
 import { Toaster } from "@/components/ui/toaster";
 import { ActivityProvider } from "@/context/ActivityContext";
 import { GlobalActivityBanner } from "@/components/activities/GlobalActivityBanner";
-// CAREERFLOW: Phase 3 — app-wide reminder SSE subscription.
-import ReminderListener from "@/components/notifications/ReminderListener";
+// CAREERFLOW: Phase 3 — app-wide reminder SSE subscription + bell badge count.
+import { ReminderProvider } from "@/context/ReminderContext";
 // CAREERFLOW: redesign — live sidebar data (counts, connection, AI spend).
 import db from "@/lib/db";
 import { getCurrentUser } from "@/utils/user.utils";
@@ -51,15 +51,16 @@ export default async function RootLayout({
     <ActivityProvider>
       <div className="flex min-h-screen w-full flex-col bg-background">
         <Sidebar {...sidebarData} />
-        <div className="flex flex-1 flex-col sm:pl-[232px]">
-          <Topbar user={user} />
-          <GlobalActivityBanner />
-          <ReminderListener />
-          <main className="flex-1 md:block lg:grid items-start gap-4 p-4 sm:px-6 sm:py-5 md:gap-4 lg:grid-cols-3 xl:grid-cols-3">
-            {children}
-          </main>
-          <Toaster />
-        </div>
+        <ReminderProvider>
+          <div className="flex flex-1 flex-col sm:pl-[232px]">
+            <Topbar user={user} />
+            <GlobalActivityBanner />
+            <main className="flex-1 md:block lg:grid items-start gap-4 p-4 sm:px-6 sm:py-5 md:gap-4 lg:grid-cols-3 xl:grid-cols-3">
+              {children}
+            </main>
+            <Toaster />
+          </div>
+        </ReminderProvider>
       </div>
     </ActivityProvider>
   );

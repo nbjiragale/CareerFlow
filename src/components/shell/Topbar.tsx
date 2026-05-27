@@ -8,6 +8,7 @@ import { useTheme } from "next-themes";
 import { Bell, Moon, PanelLeft, Plus, RefreshCw, Sun } from "lucide-react";
 
 import { SIDEBAR_SECTIONS } from "@/lib/constants";
+import { useReminders } from "@/context/ReminderContext";
 import {
   Sheet,
   SheetClose,
@@ -54,6 +55,7 @@ function ThemeToggle() {
 export default function Topbar({ user }: { user: ProfileMenuUser | null }) {
   const pathname = usePathname();
   const [syncing, setSyncing] = useState(false);
+  const { unreadCount, clearUnread } = useReminders();
 
   const handleSync = async () => {
     setSyncing(true);
@@ -142,16 +144,26 @@ export default function Topbar({ user }: { user: ProfileMenuUser | null }) {
 
         <Link
           href="/dashboard/tasks"
-          aria-label="Reminders"
-          className="grid h-[30px] w-[30px] place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          onClick={clearUnread}
+          aria-label={
+            unreadCount > 0
+              ? `Reminders (${unreadCount} new)`
+              : "Reminders"
+          }
+          className="relative grid h-[30px] w-[30px] place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[16px] place-items-center rounded-full bg-primary px-1 text-[9px] font-semibold leading-none text-primary-foreground">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
         </Link>
 
         <ThemeToggle />
 
         <Link
-          href="/dashboard/myjobs"
+          href="/dashboard/myjobs?new=1"
           className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
           <Plus className="h-3.5 w-3.5" />

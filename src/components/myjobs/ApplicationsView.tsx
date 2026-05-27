@@ -2,7 +2,8 @@
 // is the new Kanban view; Table is the existing JobsContainer (unchanged).
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LayoutGrid, Search, Table2 } from "lucide-react";
 
 import SegmentedControl from "../design/SegmentedControl";
@@ -42,6 +43,18 @@ export default function ApplicationsView({
 }: Props) {
   const [view, setView] = useState<View>("board");
   const [query, setQuery] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // CAREERFLOW: the Topbar "Add" button deep-links here with ?new=1. Open the
+  // Add Job dialog and strip the param so a later "Add" click re-triggers it.
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setAddOpen(true);
+      router.replace("/dashboard/myjobs");
+    }
+  }, [searchParams, router]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -89,6 +102,8 @@ export default function ApplicationsView({
             tags={tags}
             editJob={null}
             resetEditJob={() => {}}
+            open={addOpen}
+            onOpenChange={setAddOpen}
           />
         </div>
       </div>

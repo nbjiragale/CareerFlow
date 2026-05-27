@@ -60,6 +60,11 @@ type AddJobProps = {
   tags: Tag[];
   editJob?: JobResponse | null;
   resetEditJob: () => void;
+  // CAREERFLOW: optional controlled open state, so callers (e.g. the Topbar
+  // "Add" deep link via ?new=1) can open the dialog. Omit for the default
+  // self-managed trigger-button behavior.
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function AddJob({
@@ -71,8 +76,18 @@ export function AddJob({
   tags,
   editJob,
   resetEditJob,
+  open,
+  onOpenChange,
 }: AddJobProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const dialogOpen = open ?? internalOpen;
+  const setDialogOpen = useCallback(
+    (next: boolean) => {
+      if (onOpenChange) onOpenChange(next);
+      else setInternalOpen(next);
+    },
+    [onOpenChange],
+  );
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
@@ -144,7 +159,7 @@ export function AddJob({
       }
       setDialogOpen(true);
     }
-  }, [editJob, reset]);
+  }, [editJob, reset, setDialogOpen]);
 
   useEffect(() => {
     loadResumes();
