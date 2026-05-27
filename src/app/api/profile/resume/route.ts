@@ -6,6 +6,7 @@ import {
   editResume,
   uploadFile,
 } from "@/actions/profile.actions";
+import prisma from "@/lib/db";
 import path from "path";
 import fs from "fs";
 import { getTimestampedFileName } from "@/lib/utils";
@@ -82,7 +83,7 @@ export const GET = async (req: NextRequest) => {
   const userId = session?.user?.id;
 
   try {
-    if (!session || !session.user) {
+    if (!session || !userId) {
       return NextResponse.json(
         {
           error: "Not Authenticated",
@@ -101,6 +102,20 @@ export const GET = async (req: NextRequest) => {
         { error: "File path is required" },
         { status: 400 }
       );
+    }
+
+    // CAREERFLOW: the download previously served any filePath from the query
+    // string — an arbitrary-file-read / cross-user-resume leak. Only serve a
+    // file that is linked to a resume THIS user owns, and reject path traversal.
+    if (filePath.includes("..")) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+    const owned = await prisma.file.findFirst({
+      where: { filePath, Resume: { profile: { userId } } },
+      select: { id: true },
+    });
+    if (!owned) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
     const fullFilePath = path.join(filePath);

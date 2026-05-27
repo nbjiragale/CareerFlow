@@ -200,24 +200,22 @@ export const createResumeProfile = async (
       throw new Error("Not authenticated");
     }
 
-    //check if title exists
-    const value = title.trim().toLowerCase();
-
-    const titleExists = await prisma.resume.findFirst({
-      where: {
-        title: value,
-      },
-    });
-
-    if (titleExists) {
-      throw new Error("Title already exists!");
-    }
-
     const profile = await prisma.profile.findFirst({
       where: {
         userId: user.id,
       },
     });
+
+    // CAREERFLOW: scope title uniqueness to THIS user's profile. Previously the
+    // check matched titles across ALL users, blocking common names globally.
+    if (profile) {
+      const titleExists = await prisma.resume.findFirst({
+        where: { title: title.trim(), profileId: profile.id },
+      });
+      if (titleExists) {
+        throw new Error("Title already exists!");
+      }
+    }
 
     const res =
       profile && profile.id
@@ -331,6 +329,17 @@ export const deleteResumeById = async (
     if (!user) {
       throw new Error("Not authenticated");
     }
+
+    // CAREERFLOW: verify the resume belongs to this user before deleting it (or
+    // its file). Prevents deleting another user's resume by guessing its id.
+    const owned = await prisma.resume.findFirst({
+      where: { id: resumeId, profile: { userId: user.id } },
+      select: { id: true },
+    });
+    if (!owned) {
+      throw new Error("Resume not found");
+    }
+
     if (fileId) {
       await deleteFile(fileId);
     }
@@ -404,27 +413,31 @@ export const uploadFile = async (file: File, dir: string, path: string) => {
 
 export const deleteFile = async (fileId: string) => {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    // CAREERFLOW: only delete a file that is linked to a resume this user owns.
+    // The upload route accepts a client-supplied fileId, so without this scope
+    // any user could delete another user's file by guessing its id.
     const file = await prisma.file.findFirst({
-      where: {
-        id: fileId,
-      },
+      where: { id: fileId, Resume: { profile: { userId: user.id } } },
     });
 
-    const filePath = file?.filePath as string;
-
-    const fullFilePath = path.join(filePath);
-    if (!fs.existsSync(filePath)) {
+    if (!file) {
       throw new Error("File not found");
     }
-    fs.unlinkSync(filePath);
+
+    if (fs.existsSync(file.filePath)) {
+      fs.unlinkSync(file.filePath);
+    }
 
     await prisma.file.delete({
       where: {
         id: fileId,
       },
     });
-
-    console.log("file deleted successfully!");
   } catch (error) {
     const msg = "Failed to delete file.";
     return handleError(error, msg);
