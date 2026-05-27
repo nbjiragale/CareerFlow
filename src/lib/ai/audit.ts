@@ -14,7 +14,8 @@ export type AiFeature =
   | "resume-tailor"
   | "job-match"
   | "interview-prep"
-  | "follow-up-draft";
+  | "follow-up-draft"
+  | "outreach-draft";
 export type AiAuditStatus = "success" | "error";
 
 export interface RecordAiUsageArgs {

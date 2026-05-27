@@ -6,7 +6,7 @@ import { JobResponse } from "@/models/job.model";
 import { TipTapContentViewer } from "../TipTapContentViewer";
 import { Card, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Send, Sparkles } from "lucide-react";
 // CAREERFLOW: redesign — detail header primitives.
 import GradeChip from "../design/GradeChip";
 import StatusPill from "../design/StatusPill";
@@ -25,11 +25,14 @@ import EvaluationCard from "../evaluate/EvaluationCard";
 import JobTimeline from "../timeline/JobTimeline";
 // CAREERFLOW: Interview Copilot — auto-surfaced for interview-stage jobs.
 import InterviewCopilot from "./InterviewCopilot";
+// CAREERFLOW: Recruiter / LinkedIn outreach generator.
+import OutreachDrawer from "./OutreachDrawer";
 import { Loader2 } from "lucide-react";
 import { toast } from "../ui/use-toast";
 
 function JobDetails({ job }: { job: JobResponse }) {
   const [aiSectionOpen, setAiSectionOpen] = useState(false);
+  const [outreachOpen, setOutreachOpen] = useState(false);
   const [currentMatchScore, setCurrentMatchScore] = useState(job.matchScore);
   const [currentMatchData, setCurrentMatchData] = useState(job.matchData);
   // CAREERFLOW: Phase 2 — local mirror of the eval payload so the card can be
@@ -166,6 +169,16 @@ function JobDetails({ job }: { job: JobResponse }) {
           >
             <Sparkles className="h-3.5 w-3.5" /> Match with AI
           </Button>
+          {job?.id && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5"
+              onClick={() => setOutreachOpen(true)}
+            >
+              <Send className="h-3.5 w-3.5" /> Outreach with AI
+            </Button>
+          )}
           {job?.id && (
             <TailorResumeButton
               jobId={job.id}
@@ -318,6 +331,16 @@ function JobDetails({ job }: { job: JobResponse }) {
         triggerChange={setAiSectionOpen}
         onMatchSaved={handleMatchSaved}
       />
+
+      {job?.id && (
+        <OutreachDrawer
+          open={outreachOpen}
+          onOpenChange={setOutreachOpen}
+          jobId={job.id}
+          company={job?.Company?.label ?? ""}
+          role={job?.JobTitle?.label ?? "the role"}
+        />
+      )}
     </div>
   );
 }

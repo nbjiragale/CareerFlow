@@ -202,3 +202,15 @@ export async function listDraftsForThread(
     orderBy: { createdAt: "desc" },
   });
 }
+
+/**
+ * Return prior outreach drafts for a job, newest first. Used by the
+ * OutreachDrawer history list and the GET /api/drafts?jobId=... route.
+ * Scoped to outreach drafts so it doesn't surface follow-up/reply drafts.
+ */
+export async function listDraftsForJob(userId: string, jobId: string) {
+  return db.aiDraft.findMany({
+    where: { userId, jobId, draftType: { startsWith: "outreach-" } },
+    orderBy: { createdAt: "desc" },
+  });
+}
