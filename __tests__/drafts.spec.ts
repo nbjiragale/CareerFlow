@@ -16,6 +16,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
   default: {
+    user: { findUnique: vi.fn() },
     userSettings: { findUnique: vi.fn() },
     emailThread: { findFirst: vi.fn() },
     aiDraft: { create: vi.fn(), findMany: vi.fn() },
@@ -88,6 +89,7 @@ import {
 } from "@/lib/ai/drafts";
 import { REPLY_DRAFT_SYSTEM_PROMPT } from "@/lib/ai/prompts/reply-draft";
 
+const findUser = db.user.findUnique as unknown as ReturnType<typeof vi.fn>;
 const findSettings = db.userSettings.findUnique as unknown as ReturnType<
   typeof vi.fn
 >;
@@ -151,6 +153,8 @@ function draftObject(overrides: Record<string, unknown> = {}) {
 describe("generateReplyDraft", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // resolveUserAiSettings verifies the user exists before reading settings.
+    findUser.mockResolvedValue({ id: "u1" });
     getModelMock.mockResolvedValue({ id: "fake-model" });
     createAudit.mockResolvedValue({ id: "audit-row" });
     createDraft.mockResolvedValue({ id: "draft-row" });
@@ -415,8 +419,9 @@ describe("generateReplyDraft", () => {
   });
 
   // 401 / 429 / 5xx are real auth/quota/transport problems — the helper must
-  // NOT mask them with a retry. The error bubbles up unchanged so the user
-  // sees the actual provider error in Settings -> Usage.
+  // NOT mask them with a retry. Auth (401/403) errors are translated into an
+  // actionable AiCredentialError (still quoting the provider's reason) rather
+  // than surfacing the raw provider text; the audited error reflects that.
   it("does NOT fall back on APICallError statusCode=401 (auth)", async () => {
     findSettings.mockResolvedValue(settingsRow());
     findThread.mockResolvedValue(threadRow());
@@ -435,9 +440,9 @@ describe("generateReplyDraft", () => {
     expect(generateTextMock).not.toHaveBeenCalled();
     expect(createDraft).not.toHaveBeenCalled();
     expect(createAudit.mock.calls[0][0].data.status).toBe("error");
-    expect(createAudit.mock.calls[0][0].data.errorMessage).toBe(
-      "Incorrect API key",
-    );
+    const auditedMessage = createAudit.mock.calls[0][0].data.errorMessage;
+    expect(auditedMessage).toContain("API key");
+    expect(auditedMessage).toContain("Incorrect API key");
   });
 });
 

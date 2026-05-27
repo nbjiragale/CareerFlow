@@ -14,6 +14,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
   default: {
+    user: { findUnique: vi.fn() },
     userSettings: { findUnique: vi.fn() },
     job: { update: vi.fn() },
     aiAuditLog: { create: vi.fn() },
@@ -65,6 +66,7 @@ import {
   JD_EVALUATE_SYSTEM_PROMPT,
 } from "@/lib/ai/prompts/jd-evaluate";
 
+const findUser = db.user.findUnique as unknown as ReturnType<typeof vi.fn>;
 const findSettings = db.userSettings.findUnique as unknown as ReturnType<
   typeof vi.fn
 >;
@@ -112,8 +114,17 @@ function evaluationObject(globalScore: number, overrides: Record<string, unknown
 describe("runJdEvaluation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // resolveUserAiSettings verifies the user exists before reading settings.
+    findUser.mockResolvedValue({ id: "u1" });
     getModelMock.mockResolvedValue({ id: "fake-model" });
     createAudit.mockResolvedValue({ id: "audit-row" });
+  });
+
+  it("throws when the session user no longer exists", async () => {
+    findUser.mockResolvedValue(null);
+    await expect(
+      runJdEvaluation({ userId: "u1", jdText: "a real JD body here" }),
+    ).rejects.toThrow(/Session invalid/);
   });
 
   it("throws when jdText is empty / whitespace", async () => {

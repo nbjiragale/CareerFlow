@@ -34,10 +34,13 @@ describe("GET /api/settings/data-export", () => {
     expect(collectMock).not.toHaveBeenCalled();
   });
 
-  it("returns 404 when the user can't be found", async () => {
+  it("returns 401 when the session user no longer exists", async () => {
+    // The JWT references a userId that's gone (e.g. after a DB reset). The route
+    // treats this as an auth failure (401) so the client redirects to sign-in,
+    // rather than a confusing 404 "user not found".
     collectMock.mockResolvedValue(null);
     const res = await GET();
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
   });
 
   it("returns the export as a JSON attachment", async () => {

@@ -19,6 +19,9 @@ vi.mock("@/lib/db", () => {
     jobStatus: {
       upsert: vi.fn(),
     },
+    userSettings: {
+      create: vi.fn(),
+    },
   };
   return { default: mockPrisma };
 });
@@ -101,6 +104,13 @@ describe("Auth Actions", () => {
           createdBy: mockNewUser.id,
         })),
       });
+      // A default UserSettings row is seeded so the AI-settings resolver finds
+      // a row on first use instead of erroring.
+      expect(prisma.userSettings.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ userId: mockNewUser.id }),
+        }),
+      );
     });
 
     it("should return error if user already exists", async () => {
@@ -425,12 +435,9 @@ describe("Auth Actions", () => {
       const error = new Error("Database error");
       (signIn as any).mockRejectedValue(error);
 
-      try {
-        await authenticate("", mockFormData);
-        fail("Should have thrown");
-      } catch (err) {
-        expect((err as Error).message).toBe("Database error");
-      }
+      await expect(authenticate("", mockFormData)).rejects.toThrow(
+        "Database error",
+      );
     });
 
     it("should extract form data correctly", async () => {
