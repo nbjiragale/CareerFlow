@@ -16,6 +16,9 @@ export interface TailorPromptInput {
   jdText: string;
   jobTitleLabel?: string;
   companyLabel?: string;
+  // Optional guidance distilled from a prior resume↔JD match analysis, so the
+  // tailor builds on that work instead of re-deriving it from scratch.
+  matchGuidance?: string;
 }
 
 export function buildResumeTailorPrompt(input: TailorPromptInput): string {
@@ -34,6 +37,11 @@ ${exp.description || "(empty)"}`;
     })
     .join("\n\n");
 
+  const matchBlock = input.matchGuidance?.trim()
+    ? `\n## MATCH ANALYSIS (prioritize these — but only where the candidate genuinely has the experience; never fabricate)
+${input.matchGuidance.trim()}\n`
+    : "";
+
   return `Tailor this resume for the target job description.
 
 ## CANDIDATE
@@ -46,7 +54,7 @@ ${exp.description || "(empty)"}`;
 
 ## TARGET JOB DESCRIPTION
 ${input.jdText}
-
+${matchBlock}
 ## CURRENT SUMMARY (rewrite this for the target role)
 ${input.currentSummary || "(empty — produce a new one from the experience block below)"}
 

@@ -8,11 +8,11 @@ import {
   ResumeReviewSchema,
   RESUME_REVIEW_SYSTEM_PROMPT,
   buildResumeReviewPrompt,
-  AIUnavailableError,
   structuredObjectToResponse,
-  StructuredOutputUnsupportedError,
 } from "@/lib/ai";
 import { preprocessResumeWithFile } from "@/lib/ai/resume-text";
+import { recordAiUsage } from "@/lib/ai/audit";
+import { mapAiRouteError, resolveModelName } from "@/lib/ai/route-helpers";
 import { getResumeById } from "@/actions/profile.actions";
 import { AiModel } from "@/models/ai.model";
 
@@ -71,11 +71,9 @@ export const POST = async (req: NextRequest) => {
     }
     const { normalizedText } = preprocessResult.data;
 
-    const model = await getModel(
-      selectedModel.provider,
-      selectedModel.model || "llama3.2",
-      userId,
-    );
+    const modelName = resolveModelName(selectedModel);
+    const model = await getModel(selectedModel.provider, modelName, userId);
+    const startedAt = Date.now();
 
     // Single comprehensive LLM call. We use the non-streaming helper rather
     // than streamText({ output: Output.object(...) }) so that we get an
@@ -84,39 +82,34 @@ export const POST = async (req: NextRequest) => {
     // prose instead of structured output (smaller Ollama models). The
     // useObject() client hook still parses the single-chunk JSON response
     // correctly — we just lose the progressive-streaming UX.
-    return await structuredObjectToResponse({
-      model,
-      schema: ResumeReviewSchema,
-      system: RESUME_REVIEW_SYSTEM_PROMPT,
-      prompt: buildResumeReviewPrompt(normalizedText),
-      temperature: 0.3,
-    });
+    return await structuredObjectToResponse(
+      {
+        model,
+        schema: ResumeReviewSchema,
+        system: RESUME_REVIEW_SYSTEM_PROMPT,
+        prompt: buildResumeReviewPrompt(normalizedText),
+        temperature: 0.3,
+      },
+      undefined,
+      // Record usage so resume reviews show up in Settings → Usage like every
+      // other AI feature (previously Review was the only one not audited).
+      async ({ usage }) => {
+        await recordAiUsage({
+          userId,
+          feature: "resume-review",
+          provider: selectedModel.provider,
+          model: modelName,
+          usage: {
+            promptTokens: usage?.inputTokens,
+            completionTokens: usage?.outputTokens,
+          },
+          msElapsed: Date.now() - startedAt,
+          status: "success",
+        });
+      },
+    );
   } catch (error) {
     console.error("Resume review error:", error);
-
-    if (error instanceof AIUnavailableError) {
-      return NextResponse.json({ error: error.message }, { status: 503 });
-    }
-
-    if (error instanceof StructuredOutputUnsupportedError) {
-      return NextResponse.json(
-        { error: error.message, code: "structured_output_unsupported" },
-        { status: 422 },
-      );
-    }
-
-    const message =
-      error instanceof Error ? error.message : "AI request failed";
-
-    if (message.includes("fetch failed") || message.includes("ECONNREFUSED")) {
-      return NextResponse.json(
-        {
-          error: `Cannot connect to ${selectedModel.provider} service. Please ensure the service is running.`,
-        },
-        { status: 503 },
-      );
-    }
-
-    return NextResponse.json({ error: message }, { status: 500 });
+    return mapAiRouteError(error, selectedModel.provider);
   }
 };

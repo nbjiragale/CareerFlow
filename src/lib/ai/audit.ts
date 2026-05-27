@@ -12,6 +12,7 @@ export type AiFeature =
   | "evaluate"
   | "reply-draft"
   | "resume-tailor"
+  | "resume-review"
   | "job-match"
   | "interview-prep"
   | "follow-up-draft"

@@ -399,6 +399,72 @@ async function persistTailoredResume(
   });
 }
 
+type TailoringTip = { section?: unknown; action?: unknown };
+type MatchDataShape = {
+  keywords?: { addToResume?: unknown };
+  skills?: { missing?: unknown };
+  tailoringTips?: unknown;
+  dealBreakers?: unknown;
+};
+
+function toStringList(value: unknown, max = 10): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((x): x is string => typeof x === "string").slice(0, max);
+}
+
+/**
+ * Distill a persisted JobMatch result (Job.matchData JSON) into compact tailor
+ * guidance. Returns undefined when there's no usable match data, so the tailor
+ * prompt simply omits the block.
+ */
+function buildMatchGuidance(
+  matchData: string | null | undefined,
+): string | undefined {
+  if (!matchData) return undefined;
+  let parsed: MatchDataShape;
+  try {
+    parsed = JSON.parse(matchData) as MatchDataShape;
+  } catch {
+    return undefined;
+  }
+
+  const lines: string[] = [];
+
+  const keywords = toStringList(parsed.keywords?.addToResume);
+  if (keywords.length) {
+    lines.push(`- Keywords to weave in where truthful: ${keywords.join(", ")}`);
+  }
+
+  const missingSkills = toStringList(parsed.skills?.missing);
+  if (missingSkills.length) {
+    lines.push(
+      `- JD skills to surface if the candidate genuinely has them: ${missingSkills.join(", ")}`,
+    );
+  }
+
+  const tips = Array.isArray(parsed.tailoringTips)
+    ? (parsed.tailoringTips as TailoringTip[]).slice(0, 5)
+    : [];
+  const tipLines = tips
+    .filter((t) => typeof t.action === "string")
+    .map(
+      (t) =>
+        `  - ${typeof t.section === "string" ? `[${t.section}] ` : ""}${t.action as string}`,
+    );
+  if (tipLines.length) {
+    lines.push("- Tailoring tips:", ...tipLines);
+  }
+
+  const dealBreakers = toStringList(parsed.dealBreakers);
+  if (dealBreakers.length) {
+    lines.push(
+      `- Gaps to be mindful of (do not invent experience to fill them): ${dealBreakers.join(", ")}`,
+    );
+  }
+
+  return lines.length ? lines.join("\n") : undefined;
+}
+
 export async function runResumeTailor(
   args: RunResumeTailorArgs,
 ): Promise<RunResumeTailorResult> {
@@ -453,6 +519,9 @@ export async function runResumeTailor(
       jdText: job.description,
       jobTitleLabel: job.JobTitle?.label,
       companyLabel: job.Company?.label,
+      // Reuse a prior match analysis (persisted on the Job by the match step /
+      // "Match with AI") instead of re-deriving the same fit findings.
+      matchGuidance: buildMatchGuidance(job.matchData),
     };
 
     const { object: tailored, usage } = await generateTailorObject(

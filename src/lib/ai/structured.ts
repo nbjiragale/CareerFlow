@@ -163,8 +163,26 @@ export async function generateStructuredObject<T extends z.ZodTypeAny>(
 export async function structuredObjectToResponse<T extends z.ZodTypeAny>(
   args: GenerateStructuredArgs<T>,
   retryHint?: string,
+  // Called once the (single-chunk) result is ready, before the Response is
+  // built — lets callers record AiAuditLog usage. The object is fully resolved
+  // here (we don't truly stream), so usage is available. Failures are swallowed
+  // so auditing never breaks the user-facing response.
+  onResult?: (result: {
+    usage?: { inputTokens?: number; outputTokens?: number };
+    usedFallback: boolean;
+  }) => void | Promise<void>,
 ): Promise<Response> {
-  const { object } = await generateStructuredObject(args, retryHint);
+  const { object, usage, usedFallback } = await generateStructuredObject(
+    args,
+    retryHint,
+  );
+  if (onResult) {
+    try {
+      await onResult({ usage, usedFallback });
+    } catch {
+      // auditing is best-effort; never fail the response on it
+    }
+  }
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     start(controller) {
