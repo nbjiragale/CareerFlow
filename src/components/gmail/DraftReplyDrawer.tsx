@@ -4,7 +4,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import {
+  Check,
+  Circle,
+  CircleDot,
+  Copy,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
@@ -31,6 +39,104 @@ const INTENT_LABELS: Record<ReplyDraftIntent, string> = {
 };
 
 const CUSTOM_PROMPT_MAX = 2_000;
+
+const LOADING_PHASE_MS = 1_400;
+
+const DEFAULT_LOADING_PHASES = [
+  "Reading the email thread…",
+  "Pulling job + resume context…",
+  "Drafting the reply…",
+  "Humanizing the tone…",
+  "Polishing the wording…",
+  "Almost there…",
+];
+
+const CUSTOM_LOADING_PHASES = [
+  "Reading your instruction…",
+  "Reading the email thread…",
+  "Refining your note into an email…",
+  "Humanizing the tone…",
+  "Polishing the wording…",
+  "Almost there…",
+];
+
+function getLoadingPhases(intent: ReplyDraftIntent): string[] {
+  return intent === "custom" ? CUSTOM_LOADING_PHASES : DEFAULT_LOADING_PHASES;
+}
+
+interface GenerationStatusProps {
+  phases: string[];
+  currentIndex: number;
+  startedAt: number | null;
+}
+
+function GenerationStatus({
+  phases,
+  currentIndex,
+  startedAt,
+}: GenerationStatusProps) {
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    if (startedAt === null) return;
+    setElapsedMs(Date.now() - startedAt);
+    const id = window.setInterval(() => {
+      setElapsedMs(Date.now() - startedAt);
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [startedAt]);
+
+  const elapsedSeconds = (elapsedMs / 1000).toFixed(1);
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex flex-col gap-2 rounded-md border bg-muted/30 p-3 text-sm"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <span className="font-medium">{phases[currentIndex]}</span>
+        </div>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {elapsedSeconds}s
+        </span>
+      </div>
+      <ol className="flex flex-col gap-1 text-xs text-muted-foreground">
+        {phases.map((phase, idx) => {
+          const status =
+            idx < currentIndex
+              ? "done"
+              : idx === currentIndex
+                ? "active"
+                : "pending";
+          const Icon =
+            status === "done" ? Check : status === "active" ? CircleDot : Circle;
+          return (
+            <li
+              key={phase}
+              className={`flex items-center gap-2 ${
+                status === "active"
+                  ? "text-foreground"
+                  : status === "done"
+                    ? "opacity-60 line-through"
+                    : "opacity-50"
+              }`}
+            >
+              <Icon
+                className={`h-3 w-3 flex-none ${
+                  status === "active" ? "text-primary" : ""
+                }`}
+              />
+              <span>{phase}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
 
 interface DraftReplyDrawerProps {
   open: boolean;
@@ -59,6 +165,10 @@ export default function DraftReplyDrawer({
   const [intent, setIntent] = useState<ReplyDraftIntent>("reply");
   const [customPrompt, setCustomPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [generationStartedAt, setGenerationStartedAt] = useState<number | null>(
+    null,
+  );
   const [draft, setDraft] = useState<AiReplyDraftResponse | null>(null);
   const [editedBody, setEditedBody] = useState("");
   const [editedSubject, setEditedSubject] = useState("");
@@ -69,6 +179,21 @@ export default function DraftReplyDrawer({
 
   const customPromptTrimmed = customPrompt.trim();
   const customMissing = intent === "custom" && customPromptTrimmed.length === 0;
+  const loadingPhases = getLoadingPhases(intent);
+
+  // Rotate the loading-phase label while the request is in flight, so the
+  // drawer doesn't look frozen during long LLM round-trips. We stop on the
+  // last phase rather than looping forever — once the model is "almost
+  // there" we just keep that label until the response arrives.
+  useEffect(() => {
+    if (!generating) return;
+    const id = window.setInterval(() => {
+      setPhaseIndex((prev) =>
+        prev < loadingPhases.length - 1 ? prev + 1 : prev,
+      );
+    }, LOADING_PHASE_MS);
+    return () => window.clearInterval(id);
+  }, [generating, loadingPhases.length]);
 
   // Load history when the drawer opens.
   useEffect(() => {
@@ -101,6 +226,8 @@ export default function DraftReplyDrawer({
       return;
     }
     setGenerating(true);
+    setPhaseIndex(0);
+    setGenerationStartedAt(Date.now());
     setDraft(null);
     try {
       const res = await fetch("/api/drafts/reply", {
@@ -241,14 +368,23 @@ export default function DraftReplyDrawer({
           <Button
             onClick={onGenerate}
             disabled={generating || customMissing}
+            aria-busy={generating}
           >
             {generating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Sparkles className="mr-2 h-4 w-4" />
             )}
-            Generate draft
+            {generating ? "Generating…" : "Generate draft"}
           </Button>
+
+          {generating && (
+            <GenerationStatus
+              phases={loadingPhases}
+              currentIndex={Math.min(phaseIndex, loadingPhases.length - 1)}
+              startedAt={generationStartedAt}
+            />
+          )}
 
           {draft && (
             <div className="flex flex-col gap-3 rounded-md border p-3">
