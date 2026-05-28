@@ -27,7 +27,10 @@ const INTENT_LABELS: Record<ReplyDraftIntent, string> = {
   "follow-up": "Follow-up",
   "thank-you": "Thank you",
   confirm: "Confirm",
+  custom: "Custom",
 };
+
+const CUSTOM_PROMPT_MAX = 2_000;
 
 interface DraftReplyDrawerProps {
   open: boolean;
@@ -54,6 +57,7 @@ export default function DraftReplyDrawer({
   subject,
 }: DraftReplyDrawerProps) {
   const [intent, setIntent] = useState<ReplyDraftIntent>("reply");
+  const [customPrompt, setCustomPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [draft, setDraft] = useState<AiReplyDraftResponse | null>(null);
   const [editedBody, setEditedBody] = useState("");
@@ -62,6 +66,9 @@ export default function DraftReplyDrawer({
   const [bodyWasAvailable, setBodyWasAvailable] = useState<boolean | null>(
     null,
   );
+
+  const customPromptTrimmed = customPrompt.trim();
+  const customMissing = intent === "custom" && customPromptTrimmed.length === 0;
 
   // Load history when the drawer opens.
   useEffect(() => {
@@ -85,13 +92,25 @@ export default function DraftReplyDrawer({
   }, [open, emailThreadId]);
 
   const onGenerate = async () => {
+    if (customMissing) {
+      toast({
+        variant: "destructive",
+        title: "Tell us what to say",
+        description: "Type a short instruction so the AI can refine it.",
+      });
+      return;
+    }
     setGenerating(true);
     setDraft(null);
     try {
       const res = await fetch("/api/drafts/reply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ emailThreadId, intent }),
+        body: JSON.stringify({
+          emailThreadId,
+          intent,
+          customPrompt: intent === "custom" ? customPromptTrimmed : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -194,7 +213,35 @@ export default function DraftReplyDrawer({
             </div>
           </div>
 
-          <Button onClick={onGenerate} disabled={generating}>
+          {intent === "custom" && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="custom-prompt">What do you want to say?</Label>
+              <textarea
+                id="custom-prompt"
+                className="min-h-[100px] w-full rounded-md border border-input bg-background p-3 text-sm"
+                placeholder="e.g. Politely decline the on-site interview for now but ask if we can revisit in Q3."
+                value={customPrompt}
+                onChange={(e) =>
+                  setCustomPrompt(e.target.value.slice(0, CUSTOM_PROMPT_MAX))
+                }
+                disabled={generating}
+                maxLength={CUSTOM_PROMPT_MAX}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>
+                  The AI will refine your note into a polished email body.
+                </span>
+                <span>
+                  {customPrompt.length}/{CUSTOM_PROMPT_MAX}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <Button
+            onClick={onGenerate}
+            disabled={generating || customMissing}
+          >
             {generating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
