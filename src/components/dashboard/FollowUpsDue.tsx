@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   Copy,
   ExternalLink,
-  Loader2,
   MailPlus,
   Send,
 } from "lucide-react";
@@ -27,7 +26,19 @@ import {
   SheetTitle,
 } from "../ui/sheet";
 import { toast } from "../ui/use-toast";
+import {
+  AiProgressStatus,
+  useAiProgressPhase,
+} from "../common/AiProgressStatus";
 import type { AiReplyDraftResponse } from "@/models/ai.schemas";
+
+const FOLLOW_UP_PHASES = [
+  "Reading the application context…",
+  "Pulling job + resume context…",
+  "Drafting the follow-up…",
+  "Humanizing the tone…",
+  "Almost there…",
+];
 
 export interface FollowUpItem {
   id: string;
@@ -41,9 +52,17 @@ export default function FollowUpsDue({ items }: { items: FollowUpItem[] }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<FollowUpItem | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [generationStartedAt, setGenerationStartedAt] = useState<number | null>(
+    null,
+  );
   const [draft, setDraft] = useState<AiReplyDraftResponse | null>(null);
   const [editedSubject, setEditedSubject] = useState("");
   const [editedBody, setEditedBody] = useState("");
+
+  const [phaseIndex, setPhaseIndex] = useAiProgressPhase(
+    generating,
+    FOLLOW_UP_PHASES.length,
+  );
 
   if (!items || items.length === 0) return null;
 
@@ -51,6 +70,8 @@ export default function FollowUpsDue({ items }: { items: FollowUpItem[] }) {
     setActive(item);
     setOpen(true);
     setGenerating(true);
+    setPhaseIndex(0);
+    setGenerationStartedAt(Date.now());
     setDraft(null);
     setEditedSubject("");
     setEditedBody("");
@@ -183,10 +204,11 @@ export default function FollowUpsDue({ items }: { items: FollowUpItem[] }) {
 
           <div className="mt-4 flex flex-col gap-4">
             {generating && !draft && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Drafting your
-                follow-up…
-              </div>
+              <AiProgressStatus
+                phases={FOLLOW_UP_PHASES}
+                currentIndex={phaseIndex}
+                startedAt={generationStartedAt}
+              />
             )}
 
             {draft && (

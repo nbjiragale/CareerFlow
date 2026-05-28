@@ -17,6 +17,10 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { toast } from "../ui/use-toast";
+import {
+  AiProgressStatus,
+  useAiProgressPhase,
+} from "../common/AiProgressStatus";
 import type { InterviewPrepResponse } from "@/models/ai.schemas";
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -25,6 +29,15 @@ const CATEGORY_LABEL: Record<string, string> = {
   "role-specific": "Role-specific",
   "culture-fit": "Culture fit",
 };
+
+const INTERVIEW_PREP_PHASES = [
+  "Reading the job description…",
+  "Reviewing your resume…",
+  "Gathering company context…",
+  "Drafting likely questions…",
+  "Building your prep checklist…",
+  "Almost there…",
+];
 
 function parsePrep(json?: string | null): InterviewPrepResponse | null {
   if (!json) return null;
@@ -48,9 +61,16 @@ export default function InterviewCopilot({
     parsePrep(initialPrepJson),
   );
   const [loading, setLoading] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [phaseIndex, setPhaseIndex] = useAiProgressPhase(
+    loading,
+    INTERVIEW_PREP_PHASES.length,
+  );
 
   const generate = async (force: boolean) => {
     setLoading(true);
+    setPhaseIndex(0);
+    setStartedAt(Date.now());
     try {
       const res = await fetch("/api/interview-prep", {
         method: "POST",
@@ -131,6 +151,16 @@ export default function InterviewCopilot({
             ? "You're at the interview stage. Generate a tailored prep brief — company context, likely questions, talking points, and a checklist — from this JD and your resume."
             : "Generate a tailored prep brief from this JD and your resume: likely questions, talking points, and questions to ask."}
         </p>
+      )}
+
+      {loading && (
+        <div className="mt-3">
+          <AiProgressStatus
+            phases={INTERVIEW_PREP_PHASES}
+            currentIndex={phaseIndex}
+            startedAt={startedAt}
+          />
+        </div>
       )}
 
       {prep && (

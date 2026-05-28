@@ -18,6 +18,10 @@ import {
 } from "../ui/sheet";
 import { toast } from "../ui/use-toast";
 import {
+  AiProgressStatus,
+  useAiProgressPhase,
+} from "../common/AiProgressStatus";
+import {
   OUTREACH_INTENTS,
   type AiReplyDraftResponse,
   type OutreachIntent,
@@ -29,6 +33,15 @@ const INTENT_LABELS: Record<OutreachIntent, string> = {
   referral: "Referral ask",
   "follow-up": "Follow-up",
 };
+
+const OUTREACH_PHASES = [
+  "Reading the job context…",
+  "Pulling your resume highlights…",
+  "Drafting the message…",
+  "Humanizing the tone…",
+  "Polishing the wording…",
+  "Almost there…",
+];
 
 // LinkedIn connection-request notes are capped at 300 characters.
 const CONNECTION_CHAR_LIMIT = 300;
@@ -61,10 +74,18 @@ export default function OutreachDrawer({
   const [recipientName, setRecipientName] = useState("");
   const [recipientRole, setRecipientRole] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [generationStartedAt, setGenerationStartedAt] = useState<number | null>(
+    null,
+  );
   const [draft, setDraft] = useState<AiReplyDraftResponse | null>(null);
   const [editedBody, setEditedBody] = useState("");
   const [editedSubject, setEditedSubject] = useState("");
   const [history, setHistory] = useState<DraftRow[]>([]);
+
+  const [phaseIndex, setPhaseIndex] = useAiProgressPhase(
+    generating,
+    OUTREACH_PHASES.length,
+  );
 
   // Load history when the drawer opens.
   useEffect(() => {
@@ -89,6 +110,8 @@ export default function OutreachDrawer({
 
   const onGenerate = async () => {
     setGenerating(true);
+    setPhaseIndex(0);
+    setGenerationStartedAt(Date.now());
     setDraft(null);
     try {
       const res = await fetch("/api/drafts/outreach", {
@@ -242,14 +265,22 @@ export default function OutreachDrawer({
             </div>
           </div>
 
-          <Button onClick={onGenerate} disabled={generating}>
+          <Button onClick={onGenerate} disabled={generating} aria-busy={generating}>
             {generating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Sparkles className="mr-2 h-4 w-4" />
             )}
-            Generate message
+            {generating ? "Generating…" : "Generate message"}
           </Button>
+
+          {generating && (
+            <AiProgressStatus
+              phases={OUTREACH_PHASES}
+              currentIndex={phaseIndex}
+              startedAt={generationStartedAt}
+            />
+          )}
 
           {draft && (
             <div className="flex flex-col gap-3 rounded-md border p-3">
