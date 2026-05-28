@@ -11,11 +11,11 @@ CareerFlow AI is an open-source, self-hostable platform that unifies Gmail track
 
 CareerFlow inherits everything from JobSync (application tracker, resume builder, AI resume review, AI job match — see the JobSync section below) and adds, on top:
 
-- **Gmail integration** (Phase 1) — OAuth-based connect flow, 15-minute background sync via `node-cron`, encrypted token storage, automatic classification of recruiter / interview / rejection / offer threads. Single-account, read-only scope.
+- **Gmail integration** (Phase 1) — OAuth-based connect flow, 15-minute background sync via `node-cron`, encrypted token storage, automatic classification of recruiter / interview / rejection / offer threads (keyword-based by default; set `HUGGINGFACE_SPACE_URL` to enable the ML classifier). Single-account, read-only scope.
 - **JD evaluation** (Phase 2) — paste any job description, pick an archetype hint or auto-detect, get a structured 0–5 rubric with strengths, gaps, and an A–F grade. Persists onto the linked `Job` row for at-a-glance scoring on the Applications board.
-- **Reply-draft generator** (Phase 2) — generate intent-aware (`confirm` / `decline` / `clarify` / `thank-you`) recruiter reply drafts from a Gmail thread. Drafts are stored locally, never auto-sent. History per thread.
-- **Activity timeline & reminders** (Phase 3) — per-application timeline aggregating Gmail events, evaluation, drafts, and status changes; reminder banners surface high-priority threads needing your attention.
-- **Multi-provider AI** — Ollama (local, default), OpenAI, DeepSeek, Google Gemini, OpenRouter. Configured in Settings → AI Provider. Costs and per-call usage logged to Settings → Usage.
+- **Reply-draft generator** (Phase 2) — generate intent-aware (`reply` / `follow-up` / `thank-you` / `confirm` / `custom`) recruiter reply drafts from a Gmail thread. Drafts are stored locally, never auto-sent. History per thread.
+- **Activity timeline & reminders** (Phase 3) — per-application timeline aggregating Gmail email events and AI drafts; task reminders surface as browser notifications (with a toast fallback) when a task you've scheduled comes due.
+- **Multi-provider AI** — Ollama (local, default), OpenAI, DeepSeek, Google Gemini, OpenRouter. Configured in Settings → AI Provider. Per-call cost and usage are logged to Settings → Usage (the inherited resume-review and job-match screens are not yet metered).
 - **Reliability fallback** — when a model returns prose instead of JSON or a provider rejects our schema constraints (Gemini's `minItems` / `maxItems` / `minimum` / `maximum` restrictions, some OpenRouter proxies), we transparently retry via plain `generateText` with the JSON Schema injected into the prompt. Real auth, quota, and transport errors still surface as-is in Settings → Usage.
 - **Export & delete** — full JSON export of your data and a one-click "delete everything" flow in Settings.
 
@@ -24,7 +24,7 @@ CareerFlow inherits everything from JobSync (application tracker, resume builder
 CareerFlow is an orchestration layer over excellent existing open-source projects. We integrate rather than reconstruct:
 
 - **[Gsync/jobsync](https://github.com/Gsync/jobsync)** (MIT) — the base application: Next.js + Prisma + SQLite dashboard, AI key management, structured resume builder, AI resume↔JD matching, and the `node-cron` scheduler. CareerFlow extends this with Gmail integration, JD evaluation, and recruiter reply drafting.
-- **[Tomiwajin/CareerSync](https://github.com/Tomiwajin/CareerSync)** (MIT) — Gmail OAuth flow and email processing pipeline (Gmail message fetching + a remote HuggingFace Space classifier via the `@gradio/client` API) ported in as Next.js API routes. Regex is used only for exclusion filtering (e.g. `*@indeed.com`), not for classification.
+- **[Tomiwajin/CareerSync](https://github.com/Tomiwajin/CareerSync)** (MIT) — Gmail OAuth flow and email processing pipeline (Gmail message fetching + a remote HuggingFace Space classifier via the `@gradio/client` API) ported in as Next.js API routes. The HuggingFace Space performs classification when `HUGGINGFACE_SPACE_URL` is set; otherwise a built-in keyword classifier is the default. Regex handles exclusion filtering (e.g. `*@indeed.com`) in both cases.
 - **[career-ops](https://github.com/career-ops/career-ops)** — source of evaluation, tailoring, and outreach prompts. Re-implemented as web-facing API routes that call your configured AI provider.
 - **[srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)** (Apache 2.0) — deferred; planned as an optional Python sidecar for offline semantic scoring in a later phase.
 
