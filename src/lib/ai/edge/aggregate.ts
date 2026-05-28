@@ -23,6 +23,10 @@ export const EDGE_MIN_DECIDED = 8;
 // has at least this many decided applications, so we don't over-read noise.
 export const EDGE_MIN_COHORT_DECIDED = 2;
 
+// A follow-up sent within this many days of applying counts as "prompt"; later
+// is "delayed". Lets Edge test whether following up *quickly* matters for you.
+export const EDGE_PROMPT_FOLLOW_UP_DAYS = 7;
+
 export interface EdgeApplication {
   id: string;
   company: string | null;
@@ -33,6 +37,9 @@ export interface EdgeApplication {
   matchScore: number | null; // 0–100 resume↔JD match
   resumeTitle: string | null; // which resume version was attached
   followedUp: boolean; // did the user send a follow-up draft for this job?
+  // Days between applying and the first follow-up. null when they didn't follow
+  // up, or when we can't date it (no applied date on record).
+  followUpDelayDays: number | null;
 }
 
 export function outcomeOf(statusValue: string): EdgeOutcome {
@@ -66,6 +73,12 @@ export interface EdgeFacts {
   followUp: {
     followedUp: EdgeCohort;
     notFollowedUp: EdgeCohort;
+  };
+  // Among applications the user followed up on (and that we can date), did
+  // following up promptly correlate with better outcomes?
+  followUpTiming: {
+    withinWeek: EdgeCohort;
+    afterWeek: EdgeCohort;
   };
   hasEnoughData: boolean;
   decidedNeeded: number; // how many more decided apps until insights unlock
@@ -177,6 +190,26 @@ export function buildEdgeFacts(apps: EdgeApplication[]): EdgeFacts {
         "no-follow-up",
         "No follow-up",
         apps.filter((a) => !a.followedUp),
+      ),
+    },
+    followUpTiming: {
+      withinWeek: buildCohort(
+        "follow-up-within-week",
+        `Followed up within ${EDGE_PROMPT_FOLLOW_UP_DAYS} days`,
+        apps.filter(
+          (a) =>
+            a.followUpDelayDays != null &&
+            a.followUpDelayDays <= EDGE_PROMPT_FOLLOW_UP_DAYS,
+        ),
+      ),
+      afterWeek: buildCohort(
+        "follow-up-after-week",
+        `Followed up after ${EDGE_PROMPT_FOLLOW_UP_DAYS} days`,
+        apps.filter(
+          (a) =>
+            a.followUpDelayDays != null &&
+            a.followUpDelayDays > EDGE_PROMPT_FOLLOW_UP_DAYS,
+        ),
       ),
     },
     hasEnoughData: decided >= EDGE_MIN_DECIDED,

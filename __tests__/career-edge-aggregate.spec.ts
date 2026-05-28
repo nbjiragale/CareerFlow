@@ -22,6 +22,7 @@ function app(overrides: Partial<EdgeApplication> = {}): EdgeApplication {
     matchScore: null,
     resumeTitle: null,
     followedUp: false,
+    followUpDelayDays: null,
     ...overrides,
   };
 }
@@ -116,6 +117,32 @@ describe("buildEdgeFacts cohorts", () => {
     const f = buildEdgeFacts(apps);
     expect(f.followUp.followedUp.rate).toBe(50); // 1/2
     expect(f.followUp.notFollowedUp.rate).toBe(0); // 0/2
+  });
+
+  it("splits prompt vs delayed follow-up timing (only dated follow-ups)", () => {
+    const apps = [
+      app({ followedUp: true, followUpDelayDays: 2, statusValue: "interview" }),
+      app({ followedUp: true, followUpDelayDays: 5, statusValue: "offer" }),
+      app({ followedUp: true, followUpDelayDays: 20, statusValue: "rejected" }),
+      app({ followedUp: true, followUpDelayDays: 30, statusValue: "rejected" }),
+      // Followed up but undated — excluded from the timing split entirely.
+      app({ followedUp: true, followUpDelayDays: null, statusValue: "offer" }),
+    ];
+    const f = buildEdgeFacts(apps);
+    expect(f.followUpTiming.withinWeek.total).toBe(2);
+    expect(f.followUpTiming.withinWeek.rate).toBe(100); // 2/2
+    expect(f.followUpTiming.afterWeek.total).toBe(2);
+    expect(f.followUpTiming.afterWeek.rate).toBe(0); // 0/2
+  });
+
+  it("treats a follow-up at exactly the threshold as prompt", () => {
+    const apps = [
+      app({ followedUp: true, followUpDelayDays: 7, statusValue: "interview" }),
+      app({ followedUp: true, followUpDelayDays: 8, statusValue: "rejected" }),
+    ];
+    const f = buildEdgeFacts(apps);
+    expect(f.followUpTiming.withinWeek.total).toBe(1);
+    expect(f.followUpTiming.afterWeek.total).toBe(1);
   });
 });
 

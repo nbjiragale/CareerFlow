@@ -24,9 +24,13 @@ function section(title: string, cohorts: EdgeCohort[]): string {
 }
 
 export function buildCareerEdgePrompt(facts: EdgeFacts): string {
-  const { totals, followUp } = facts;
+  const { totals, followUp, followUpTiming } = facts;
 
   const followUpLines = [followUp.followedUp, followUp.notFollowedUp]
+    .filter((c) => c.decided >= EDGE_MIN_COHORT_DECIDED)
+    .map(cohortLine);
+
+  const timingLines = [followUpTiming.withinWeek, followUpTiming.afterWeek]
     .filter((c) => c.decided >= EDGE_MIN_COHORT_DECIDED)
     .map(cohortLine);
 
@@ -48,6 +52,11 @@ export function buildCareerEdgePrompt(facts: EdgeFacts): string {
     "=== FOLLOW-UP BEHAVIOR ===",
     ...(followUpLines.length > 0
       ? followUpLines
+      : ["- (not enough decided applications to compare)"]),
+    "",
+    "=== FOLLOW-UP TIMING ===",
+    ...(timingLines.length > 0
+      ? timingLines
       : ["- (not enough decided applications to compare)"]),
     "",
     "Analyze the stats above and produce the CareerEdgeSchema. Cite only these numbers.",

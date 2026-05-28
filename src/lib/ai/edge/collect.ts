@@ -8,6 +8,8 @@ import "server-only";
 import db from "@/lib/db";
 import type { EdgeApplication } from "./aggregate";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 function archetypeFromEvaluation(evaluationJson: string | null): string | null {
   if (!evaluationJson) return null;
   try {
@@ -28,27 +30,44 @@ export async function collectApplications(
       matchScore: true,
       evaluationGrade: true,
       evaluationJson: true,
+      appliedDate: true,
+      createdAt: true,
       Status: { select: { value: true } },
       JobTitle: { select: { label: true } },
       Company: { select: { label: true } },
       Resume: { select: { title: true } },
       AiDraft: {
         where: { draftType: "follow-up" },
-        select: { id: true },
+        select: { createdAt: true },
+        orderBy: { createdAt: "asc" },
         take: 1,
       },
     },
   });
 
-  return jobs.map((j) => ({
-    id: j.id,
-    company: j.Company?.label ?? null,
-    role: j.JobTitle?.label ?? null,
-    statusValue: j.Status?.value ?? "draft",
-    archetype: archetypeFromEvaluation(j.evaluationJson),
-    grade: j.evaluationGrade ?? null,
-    matchScore: typeof j.matchScore === "number" ? j.matchScore : null,
-    resumeTitle: j.Resume?.title ?? null,
-    followedUp: j.AiDraft.length > 0,
-  }));
+  return jobs.map((j) => {
+    const firstFollowUp = j.AiDraft[0]?.createdAt ?? null;
+    const appliedAt = j.appliedDate ?? j.createdAt ?? null;
+    let followUpDelayDays: number | null = null;
+    if (firstFollowUp && appliedAt) {
+      const days = Math.round(
+        (firstFollowUp.getTime() - appliedAt.getTime()) / DAY_MS,
+      );
+      // Guard against drafts dated before the applied date (data quirks).
+      followUpDelayDays = Math.max(0, days);
+    }
+
+    return {
+      id: j.id,
+      company: j.Company?.label ?? null,
+      role: j.JobTitle?.label ?? null,
+      statusValue: j.Status?.value ?? "draft",
+      archetype: archetypeFromEvaluation(j.evaluationJson),
+      grade: j.evaluationGrade ?? null,
+      matchScore: typeof j.matchScore === "number" ? j.matchScore : null,
+      resumeTitle: j.Resume?.title ?? null,
+      followedUp: firstFollowUp != null,
+      followUpDelayDays,
+    };
+  });
 }
