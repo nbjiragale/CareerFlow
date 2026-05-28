@@ -12,11 +12,22 @@ import { generateReplyDraft } from "@/lib/ai/drafts";
 import { StructuredOutputUnsupportedError } from "@/lib/ai/structured";
 import { ReplyDraftIntentSchema } from "@/models/ai.schemas";
 
-const BodySchema = z.object({
-  emailThreadId: z.string().min(1),
-  intent: ReplyDraftIntentSchema,
-  resumeSummary: z.string().optional().nullable(),
-});
+const BodySchema = z
+  .object({
+    emailThreadId: z.string().min(1),
+    intent: ReplyDraftIntentSchema,
+    resumeSummary: z.string().optional().nullable(),
+    customPrompt: z.string().max(2_000).optional().nullable(),
+  })
+  .refine(
+    (data) =>
+      data.intent !== "custom" ||
+      (typeof data.customPrompt === "string" && data.customPrompt.trim().length > 0),
+    {
+      message: "customPrompt is required when intent is 'custom'.",
+      path: ["customPrompt"],
+    },
+  );
 
 export const POST = async (req: NextRequest) => {
   const session = await auth();
@@ -54,6 +65,7 @@ export const POST = async (req: NextRequest) => {
       emailThreadId: body.emailThreadId,
       intent: body.intent,
       resumeSummary: body.resumeSummary ?? null,
+      customPrompt: body.customPrompt ?? null,
     });
     return NextResponse.json(result);
   } catch (err) {

@@ -32,6 +32,7 @@ export interface GenerateReplyDraftArgs {
   emailThreadId: string;
   intent: ReplyDraftIntent;
   resumeSummary?: string | null;
+  customPrompt?: string | null;
 }
 
 export interface GenerateReplyDraftResult {
@@ -77,7 +78,7 @@ async function fetchMessageBody(
 export async function generateReplyDraft(
   args: GenerateReplyDraftArgs,
 ): Promise<GenerateReplyDraftResult> {
-  const { userId, emailThreadId, intent, resumeSummary } = args;
+  const { userId, emailThreadId, intent, resumeSummary, customPrompt } = args;
 
   const thread = await db.emailThread.findFirst({
     where: { id: emailThreadId, userId },
@@ -128,6 +129,7 @@ export async function generateReplyDraft(
         body,
         resumeSummary,
         job,
+        customPrompt,
       }),
       temperature: 0.7,
     });

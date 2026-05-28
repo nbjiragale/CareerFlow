@@ -10,6 +10,7 @@ import type { ReplyDraftIntent } from "@/models/ai.schemas";
 
 const MAX_BODY_CHARS = 6_000;
 const MAX_RESUME_CHARS = 1_500;
+const MAX_CUSTOM_PROMPT_CHARS = 2_000;
 
 export interface BuildReplyDraftPromptArgs {
   intent: ReplyDraftIntent;
@@ -27,12 +28,13 @@ export interface BuildReplyDraftPromptArgs {
     company?: string | null;
     status?: string | null;
   } | null;
+  customPrompt?: string | null;
 }
 
 export function buildReplyDraftPrompt(
   args: BuildReplyDraftPromptArgs,
 ): string {
-  const { intent, thread, body, resumeSummary, job } = args;
+  const { intent, thread, body, resumeSummary, job, customPrompt } = args;
 
   const bodyBlock = body
     ? body.slice(0, MAX_BODY_CHARS)
@@ -50,6 +52,19 @@ export function buildReplyDraftPrompt(
         `Status: ${job.status ?? "Unknown"}`,
       ].join("\n")
     : "(no linked job)";
+
+  const trimmedCustom = (customPrompt ?? "").slice(0, MAX_CUSTOM_PROMPT_CHARS).trim();
+  const customBlock =
+    intent === "custom"
+      ? [
+          "=== CUSTOM INSTRUCTION ===",
+          trimmedCustom ||
+            "(the user selected 'custom' but provided no instruction \u2014 fall back to a brief, professional acknowledgement)",
+          "",
+          "Refine and polish the above instruction into a coherent email body. Do not add facts beyond it.",
+          "",
+        ].join("\n")
+      : "";
 
   return [
     `Intent: ${intent}`,
@@ -69,6 +84,7 @@ export function buildReplyDraftPrompt(
     "=== CANDIDATE RESUME SUMMARY ===",
     resumeBlock,
     "",
+    customBlock,
     "Draft the reply now per the schema. Body only \u2014 no signature.",
   ].join("\n");
 }

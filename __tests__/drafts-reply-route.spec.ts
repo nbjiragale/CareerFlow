@@ -87,9 +87,45 @@ describe("POST /api/drafts/reply", () => {
       emailThreadId: "t1",
       intent: "follow-up",
       resumeSummary: "...",
+      customPrompt: null,
     });
     const body = await res.json();
     expect(body.draftId).toBe("d1");
+  });
+
+  it("requires customPrompt when intent is 'custom'", async () => {
+    const res = await POST(
+      req({ emailThreadId: "t1", intent: "custom" }) as never,
+    );
+    expect(res.status).toBe(400);
+    expect(draftMock).not.toHaveBeenCalled();
+  });
+
+  it("forwards customPrompt when intent is 'custom'", async () => {
+    draftMock.mockResolvedValue({
+      draft: { body: "hi", tone: "warm" },
+      draftId: "d2",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      costUsd: 0.0005,
+      bodyWasAvailable: true,
+      msElapsed: 250,
+    });
+    const res = await POST(
+      req({
+        emailThreadId: "t1",
+        intent: "custom",
+        customPrompt: "Politely decline the offer.",
+      }) as never,
+    );
+    expect(res.status).toBe(200);
+    expect(draftMock).toHaveBeenCalledWith({
+      userId: "u1",
+      emailThreadId: "t1",
+      intent: "custom",
+      resumeSummary: null,
+      customPrompt: "Politely decline the offer.",
+    });
   });
 
   it("maps 'thread not found' errors to 404", async () => {

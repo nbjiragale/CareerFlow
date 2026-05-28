@@ -24,8 +24,14 @@ describe("Reply draft prompts", () => {
       expect(REPLY_DRAFT_SYSTEM_PROMPT.length).toBeGreaterThan(500);
     });
 
-    it("documents all four intents", () => {
-      for (const intent of ["reply", "follow-up", "thank-you", "confirm"]) {
+    it("documents all five intents", () => {
+      for (const intent of [
+        "reply",
+        "follow-up",
+        "thank-you",
+        "confirm",
+        "custom",
+      ]) {
         expect(REPLY_DRAFT_SYSTEM_PROMPT).toContain(intent);
       }
     });
@@ -126,6 +132,37 @@ describe("Reply draft prompts", () => {
         thread: baseThread(),
       });
       expect(out).toMatch(/Body only/);
+    });
+
+    it("includes the custom instruction block when intent is 'custom'", () => {
+      const out = buildReplyDraftPrompt({
+        intent: "custom",
+        thread: baseThread(),
+        customPrompt: "Politely decline and ask to reconnect next quarter.",
+      });
+      expect(out).toContain("=== CUSTOM INSTRUCTION ===");
+      expect(out).toContain("Politely decline and ask to reconnect next quarter.");
+    });
+
+    it("omits the custom instruction block for non-custom intents", () => {
+      const out = buildReplyDraftPrompt({
+        intent: "reply",
+        thread: baseThread(),
+        customPrompt: "ignored",
+      });
+      expect(out).not.toContain("=== CUSTOM INSTRUCTION ===");
+      expect(out).not.toContain("ignored");
+    });
+
+    it("truncates the custom prompt to 2000 chars", () => {
+      const out = buildReplyDraftPrompt({
+        intent: "custom",
+        thread: baseThread(),
+        customPrompt: "x".repeat(5_000),
+      });
+      const xs = out.match(/x+/g) ?? [];
+      const longest = Math.max(...xs.map((s) => s.length));
+      expect(longest).toBe(2_000);
     });
   });
 });

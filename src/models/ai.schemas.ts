@@ -358,6 +358,7 @@ export const REPLY_DRAFT_INTENTS = [
   "follow-up",
   "thank-you",
   "confirm",
+  "custom",
 ] as const;
 export type ReplyDraftIntent = (typeof REPLY_DRAFT_INTENTS)[number];
 export const ReplyDraftIntentSchema = z.enum(REPLY_DRAFT_INTENTS);
