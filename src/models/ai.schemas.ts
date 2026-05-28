@@ -507,3 +507,69 @@ export const InterviewPrepSchema = z.object({
 
 export type InterviewPrepResponse = z.infer<typeof InterviewPrepSchema>;
 export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
+
+// ---------------------------------------------------------------------------
+// CAREERFLOW: "Edge" win-loop. The model receives REAL aggregated statistics
+// from the user's own application funnel (computed deterministically in
+// src/lib/ai/edge/aggregate.ts) and turns them into grounded, honest coaching.
+// Hard rule enforced by the prompt: the model may ONLY cite numbers present in
+// the supplied stats — it never invents figures, and it must hedge on small
+// samples (correlation, not causation).
+// ---------------------------------------------------------------------------
+
+const EdgeInsightSchema = z.object({
+  title: z
+    .string()
+    .describe("Short, punchy headline for the insight (≤ 8 words)."),
+  finding: z
+    .string()
+    .describe(
+      "1–2 sentences stating what the data shows. MUST reference specific numbers from the supplied stats (rates, counts). No invented figures.",
+    ),
+  recommendation: z
+    .string()
+    .describe(
+      "One concrete, actionable next step the candidate can take based on this finding.",
+    ),
+  factor: z
+    .enum([
+      "archetype",
+      "grade",
+      "match",
+      "follow-up",
+      "resume",
+      "timing",
+      "general",
+    ])
+    .describe("Which dimension of the funnel this insight is about."),
+  confidence: z
+    .enum(["low", "medium", "high"])
+    .describe(
+      "How much to trust this given the sample size behind it. Few decided applications ⇒ low.",
+    ),
+});
+
+export const CareerEdgeSchema = z.object({
+  headline: z
+    .string()
+    .describe(
+      "2–3 sentence honest summary of how the search is going, anchored on the overall interview+ rate.",
+    ),
+  insights: z
+    .array(EdgeInsightSchema)
+    .min(1)
+    .max(5)
+    .describe(
+      "The 1–5 most decision-useful patterns, strongest first. Only include patterns the supplied stats actually support.",
+    ),
+  nextActions: z
+    .array(z.string())
+    .min(1)
+    .max(4)
+    .describe(
+      "1–4 specific things to do next, ordered by expected impact on interview rate.",
+    ),
+});
+
+export type CareerEdgeResponse = z.infer<typeof CareerEdgeSchema>;
+export type CareerEdgeInsight = z.infer<typeof EdgeInsightSchema>;

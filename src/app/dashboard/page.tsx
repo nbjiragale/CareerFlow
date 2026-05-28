@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { Download, Sparkles } from "lucide-react";
 
 import ActivityCalendar from "@/components/dashboard/ActivityCalendar";
+import CareerEdgeCard from "@/components/dashboard/CareerEdgeCard";
 import FollowUpsDue from "@/components/dashboard/FollowUpsDue";
 import RecentCardToggle from "@/components/dashboard/RecentCardToggle";
 import WeeklyBarChartToggle from "@/components/dashboard/WeeklyBarChartToggle";
@@ -25,6 +26,7 @@ import AiSpendTile from "@/components/dashboard/AiSpendTile";
 // CAREERFLOW: redesign — dashboard stat cards.
 import StatCard from "@/components/design/StatCard";
 import { getUsageSummary } from "@/lib/ai/usage";
+import { getEdgeReadiness } from "@/lib/ai/edge";
 import { getCurrentUser } from "@/utils/user.utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -58,6 +60,7 @@ export default async function Dashboard() {
     usage,
     activeCount,
     followUpsDue,
+    edgeReadiness,
   ] = await Promise.all([
     getJobsAppliedForPeriod(30),
     getRecentJobs(),
@@ -70,6 +73,7 @@ export default async function Dashboard() {
     getUsageSummary(userId, 30),
     getActiveApplicationsCount(userId),
     getFollowUpsDue(userId),
+    getEdgeReadiness(userId),
   ]);
 
   const interviewCount = funnel.find((s) => s.stage === "interview")?.count ?? 0;
@@ -148,6 +152,9 @@ export default async function Dashboard() {
 
       {/* proactive follow-up nudge */}
       <FollowUpsDue items={followUpsDue} />
+
+      {/* the standout: a private coach grounded in your own outcomes */}
+      <CareerEdgeCard readiness={edgeReadiness} />
 
       {/* weekly activity */}
       <WeeklyBarChartToggle
