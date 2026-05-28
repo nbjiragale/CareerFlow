@@ -30,7 +30,7 @@ type CreateResumeProps = {
   setResumeDialogOpen: (e: boolean) => void;
   resumeToEdit?: Resume | null;
   reloadResumes: () => void;
-  setNewResumeId: (id: string) => void;
+  setNewResumeId?: (id: string) => void;
 };
 
 function CreateResume({
@@ -95,7 +95,7 @@ function CreateResume({
         setResumeDialogOpen(false);
         reloadResumes();
         if (response.data?.id) {
-          setNewResumeId(response.data?.id);
+          setNewResumeId?.(response.data?.id);
         }
         toast({
           variant: "success",

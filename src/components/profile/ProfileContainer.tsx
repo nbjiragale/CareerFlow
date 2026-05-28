@@ -180,8 +180,6 @@ const ProfileContainer = () => {
     setCoverLetterDialogOpen(true);
   };
 
-  const setResumeId = (id: string) => {};
-
   // CAREERFLOW: redesign (PR E) — summary line per mockup:
   // "N versions · X resumes, Y cover letters · used across K applications".
   const summary = (() => {
@@ -242,7 +240,6 @@ const ProfileContainer = () => {
             setResumeDialogOpen={setResumeDialogOpen}
             reloadResumes={reloadDocuments}
             resumeToEdit={resumeToEdit}
-            setNewResumeId={setResumeId}
           />
           <CreateCoverLetter
             dialogOpen={coverLetterDialogOpen}
