@@ -17,6 +17,7 @@ import { Download, Sparkles } from "lucide-react";
 import ActivityCalendar from "@/components/dashboard/ActivityCalendar";
 import CareerEdgeCard from "@/components/dashboard/CareerEdgeCard";
 import FollowUpsDue from "@/components/dashboard/FollowUpsDue";
+import StatusSuggestions from "@/components/dashboard/StatusSuggestions";
 import RecentCardToggle from "@/components/dashboard/RecentCardToggle";
 import WeeklyBarChartToggle from "@/components/dashboard/WeeklyBarChartToggle";
 // CAREERFLOW: Phase 3 (PR #9) — analytics tiles.
@@ -27,6 +28,7 @@ import AiSpendTile from "@/components/dashboard/AiSpendTile";
 import StatCard from "@/components/design/StatCard";
 import { getUsageSummary } from "@/lib/ai/usage";
 import { getEdgeReadiness } from "@/lib/ai/edge";
+import { getStatusSuggestions } from "@/lib/gmail/status-suggestions";
 import { getCurrentUser } from "@/utils/user.utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -61,6 +63,7 @@ export default async function Dashboard() {
     activeCount,
     followUpsDue,
     edgeReadiness,
+    statusSuggestions,
   ] = await Promise.all([
     getJobsAppliedForPeriod(30),
     getRecentJobs(),
@@ -74,6 +77,7 @@ export default async function Dashboard() {
     getActiveApplicationsCount(userId),
     getFollowUpsDue(userId),
     getEdgeReadiness(userId),
+    getStatusSuggestions(userId),
   ]);
 
   const interviewCount = funnel.find((s) => s.stage === "interview")?.count ?? 0;
@@ -149,6 +153,9 @@ export default async function Dashboard() {
         <StatCard label="In interview" value={interviewCount} />
         <StatCard label="Response rate" value={`${rate30}%`} />
       </div>
+
+      {/* inbox → application status nudge (confirm-first) */}
+      <StatusSuggestions items={statusSuggestions} />
 
       {/* proactive follow-up nudge */}
       <FollowUpsDue items={followUpsDue} />

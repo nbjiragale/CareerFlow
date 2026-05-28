@@ -610,6 +610,9 @@ model EmailThread {
   label       String // "Applied" | "Interview" | "Rejected" | "Offer" | "NextPhase" | "NotJobRelated"
   confidence  Float
   needsReview Boolean @default(false)
+  // CAREERFLOW: once the user applies or dismisses the status change this
+  // thread's classification implies, we stop surfacing it as a suggestion.
+  statusSuggestionHandled Boolean @default(false)
 
   // Extracted fields (the Space returns these alongside label).
   extractedCompany String?
