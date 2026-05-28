@@ -23,6 +23,10 @@ import {
   SelectValue,
 } from "../ui/select";
 import { toast } from "../ui/use-toast";
+import {
+  AiProgressStatus,
+  useAiProgressPhase,
+} from "../common/AiProgressStatus";
 
 import { ArchetypePicker, type ArchetypePickerValue } from "./ArchetypePicker";
 import EvaluationCard from "./EvaluationCard";
@@ -65,6 +69,22 @@ What we're looking for
 - Production experience with Kubernetes, Terraform, and AWS or GCP.
 - Bonus: vector databases, retrieval pipelines, or LLMOps tooling.`;
 
+const EVALUATE_PHASES = [
+  "Reading the job description…",
+  "Detecting the role archetype…",
+  "Scoring fit across dimensions…",
+  "Writing the evaluation…",
+  "Almost there…",
+];
+
+const MATCH_TAILOR_PHASES = [
+  "Creating the tracked application…",
+  "Evaluating the job description…",
+  "Matching your resume to the JD…",
+  "Tailoring a new resume version…",
+  "Finalizing results…",
+];
+
 function structuredOutputToast() {
   toast({
     variant: "destructive",
@@ -87,9 +107,17 @@ export default function EvaluatePanel() {
   const [loading, setLoading] = useState<"none" | "evaluate" | "match-tailor">(
     "none",
   );
+  const [startedAt, setStartedAt] = useState<number | null>(null);
   const [result, setResult] = useState<EvaluateResponse | null>(null);
   const [matchTailor, setMatchTailor] = useState<MatchTailorResultData | null>(
     null,
+  );
+
+  const loadingPhases =
+    loading === "match-tailor" ? MATCH_TAILOR_PHASES : EVALUATE_PHASES;
+  const [phaseIndex, setPhaseIndex] = useAiProgressPhase(
+    loading !== "none",
+    loadingPhases.length,
   );
 
   useEffect(() => {
@@ -122,6 +150,8 @@ export default function EvaluatePanel() {
       return;
     }
     setLoading("evaluate");
+    setPhaseIndex(0);
+    setStartedAt(Date.now());
     setResult(null);
     setMatchTailor(null);
     try {
@@ -184,6 +214,8 @@ export default function EvaluatePanel() {
       return;
     }
     setLoading("match-tailor");
+    setPhaseIndex(0);
+    setStartedAt(Date.now());
     setResult(null);
     setMatchTailor(null);
     try {
@@ -348,6 +380,14 @@ export default function EvaluatePanel() {
               Match &amp; Tailor
             </Button>
           </div>
+
+          {busy && (
+            <AiProgressStatus
+              phases={loadingPhases}
+              currentIndex={phaseIndex}
+              startedAt={startedAt}
+            />
+          )}
         </CardContent>
       </Card>
 
